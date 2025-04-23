@@ -1,0 +1,18 @@
+{
+  "appName": "Majlis Bandaraya Kuantan",
+  "welcome": "Selamat Datang",
+  "idUser": "ID Pengguna",
+  "enter": "Masukan",
+  "password": "Kata Laluan",
+  "login": "Log Masuk",
+  "witness": "Saksi",
+  "unit": "Unit",
+  "duplicateCopy": "Salinan Pendua",
+  "dashboard": "Halaman Utama",
+  "handHeldMBK": "Handheld MBK",
+  "setting": "Tetapan",
+  "logout": "Log Keluar",
+  "logoutDesc": "Adakah Anda Pasti Mahu Log Keluar?",
+  "yes": "Ya",
+  "no": "Tidak"
+}

@@ -1,0 +1,18 @@
+{
+  "appName": "Kuantan City Council",
+  "welcome": "Welcome",
+  "idUser": "ID User",
+  "enter": "Enter",
+  "password": "Password",
+  "login": "Login",
+  "witness": "Witness",
+  "unit": "Unit",
+  "duplicateCopy": "Duplicate Copy",
+  "dashboard": "Dashboard",
+  "handHeldMBK": "Handheld MBK",
+  "setting": "Setting",
+  "logout": "Logout",
+  "logoutDesc": "Are You Confirm To Logout?",
+  "yes": "Yes",
+  "no": "No"
+}
