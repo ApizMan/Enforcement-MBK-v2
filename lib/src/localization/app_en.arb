@@ -14,5 +14,12 @@
   "logout": "Logout",
   "logoutDesc": "Are You Confirm To Logout?",
   "yes": "Yes",
-  "no": "No"
+  "no": "No",
+  "handheldId": "ID Handheld",
+  "idLogIn": "ID Log In",
+  "totalAllNotice": "Total All Notices",
+  "totalNoticeNotYetUpload": "Total Notice Not Yet Been Upload",
+  "totalPicture": "Total Picture",
+  "totalPayTransaction": "Total Pay Transaction",
+  "totalAmountPayment": "Total Amount Payment"
 }

@@ -59,6 +59,7 @@ class LoginFormBloc extends FormBloc<String, String> {
 
       await SharedPreferencesHelper.saveLoginCredential(
         model.userId!,
+        matchedOfficer.name!,
         model.password!,
         model.unit!,
         model.witness!,

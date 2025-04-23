@@ -15,12 +15,14 @@ class SharedPreferencesHelper {
   }
 
   static Future<void> saveLoginCredential(
+    String userId,
     String name,
     String password,
     String unit,
     String witness,
   ) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString(loginIdKey, userId);
     prefs.setString(loginNameKey, name);
     prefs.setString(loginPasswordKey, password);
     prefs.setString(loginUnitKey, unit);
@@ -31,6 +33,7 @@ class SharedPreferencesHelper {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     // Retrieve values from SharedPreferences
+    final String? id = prefs.getString(loginIdKey);
     final String? name = prefs.getString(loginNameKey);
     final String? password = prefs.getString(loginPasswordKey);
     final String? unit = prefs.getString(loginUnitKey);
@@ -38,6 +41,7 @@ class SharedPreferencesHelper {
 
     // Return the values as a Map
     return {
+      'id': id,
       'name': name,
       'password': password,
       'unit': unit,
@@ -48,9 +52,22 @@ class SharedPreferencesHelper {
   static Future<void> deleteLoginCredential() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
+    await prefs.remove(loginIdKey);
     await prefs.remove(loginNameKey);
     await prefs.remove(loginPasswordKey);
     await prefs.remove(loginUnitKey);
     await prefs.remove(loginWitnessKey);
+  }
+
+  static Future<void> isPrinterNew(bool isPrinterNew) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool(isPrinterNewKey, isPrinterNew);
+  }
+
+  static Future<bool> getPrinterNew() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool isPrinterNew = prefs.getBool(isPrinterNewKey) ?? false;
+
+    return isPrinterNew;
   }
 }

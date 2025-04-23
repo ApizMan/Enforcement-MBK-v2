@@ -40,7 +40,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final userLogin = await SharedPreferencesHelper.getLoginCredential();
 
     if (mounted) {
-      if (userLogin['name'] != null && userLogin['password'] != null) {
+      if (userLogin['id'] != null && userLogin['password'] != null) {
         Navigator.pushReplacementNamed(
           context,
           RouteManager.homeScreen,

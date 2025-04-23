@@ -8,6 +8,7 @@ class RouteManager {
 
   // Dashboard
   static const homeScreen = '/homeScreen';
+  static const settingScreen = '/settingScreen';
 
   static final routes = [
     // Auth
@@ -16,5 +17,6 @@ class RouteManager {
 
     // Dashboard
     GetPage(name: homeScreen, page: () => HomeScreen()),
+    GetPage(name: settingScreen, page: () => SettingScreen()),
   ];
 }

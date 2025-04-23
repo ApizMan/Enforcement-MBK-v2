@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:eo_apk_mbk_v2/helpers/constant.dart';
 import 'package:eo_apk_mbk_v2/helpers/print_document.dart';
+import 'package:eo_apk_mbk_v2/helpers/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -16,6 +18,7 @@ class _PrinterFunctionState extends State<PrinterFunction> {
     text: "0017E9D8329F", // Example without colons
   );
   bool isPrinting = false;
+  bool isChecked = false;
 
   @override
   void initState() {
@@ -87,34 +90,57 @@ ${doc.getLabelLengthCommand()}${doc.getPrintingData()}^XZ
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Zebra Manual MAC Connect")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const Text("Enter your Zebra ZQ520 MAC Address"),
-            const SizedBox(height: 10),
-            TextField(
-              controller: macController,
-              decoration: const InputDecoration(
-                labelText: "MAC Address",
-                hintText: "e.g. 00:17:E9:D8:32:9F or 0017E9D8329F",
-                border: OutlineInputBorder(),
-              ),
+    return Column(
+      children: [
+        Container(
+          margin: EdgeInsets.only(top: 10.0, bottom: 20.0),
+          decoration: BoxDecoration(
+            color: kGrey.withOpacity(0.5),
+            borderRadius: BorderRadius.all(Radius.circular(10.0)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Checkbox(
+                      checkColor: Colors.white,
+                      value: isChecked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          isChecked = value!;
+                        });
+                      },
+                    ),
+                    Text("Pencetak Baru"),
+                  ],
+                ),
+                spaceVertical(height: 20.0),
+                TextField(
+                  controller: macController,
+                  enabled: isChecked, // Enable/disable based on checkbox
+                  decoration: const InputDecoration(
+                    labelText: "MAC Address",
+                    hintText: "e.g. 00:17:E9:D8:32:9F or 0017E9D8329F",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.print),
-              label: Text(isPrinting ? "Printing..." : "Connect & Print"),
-              onPressed:
-                  isPrinting
-                      ? null
-                      : () => connectAndPrint(macController.text.trim()),
-            ),
-          ],
+          ),
         ),
-      ),
+        ElevatedButton.icon(
+          icon: const Icon(Icons.print),
+          label: Text(isPrinting ? "Printing..." : "Connect & Print"),
+          onPressed:
+              isPrinting
+                  ? null
+                  : () => connectAndPrint(macController.text.trim()),
+        ),
+      ],
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:eo_apk_mbk_v2/helpers/constant.dart';
 import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
+import 'package:eo_apk_mbk_v2/models/models.dart';
 import 'package:eo_apk_mbk_v2/routes/route_manager.dart';
 import 'package:eo_apk_mbk_v2/widgets/custom_dialog.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +8,15 @@ import 'package:sidebarx/sidebarx.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SidebarLayout extends StatefulWidget {
-  const SidebarLayout({super.key});
+  final List<UserModel> userModel;
+  final List<OfficerUnitModel> unitModel;
+  final String handHeldId;
+  const SidebarLayout({
+    super.key,
+    required this.unitModel,
+    required this.userModel,
+    required this.handHeldId,
+  });
 
   @override
   State<SidebarLayout> createState() => _SidebarLayoutState();
@@ -89,7 +98,12 @@ class _SidebarLayoutState extends State<SidebarLayout> {
         SidebarXItem(
           icon: Icons.settings,
           label: AppLocalizations.of(context)!.setting,
-          onTap: () {},
+          onTap:
+              () => Navigator.pushNamed(
+                context,
+                RouteManager.settingScreen,
+                arguments: {'handHeldId': widget.handHeldId},
+              ),
         ),
         SidebarXItem(
           icon: Icons.logout_outlined,

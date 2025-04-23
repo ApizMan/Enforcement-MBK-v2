@@ -26,10 +26,12 @@ const String logo = 'assets/images/logo.png';
 
 // Shared Preference Key
 const String handHeldIdKey = 'handHeldIdKey';
+const String loginIdKey = 'loginIdKey';
 const String loginNameKey = 'loginNameKey';
 const String loginPasswordKey = 'loginPasswordKey';
 const String loginUnitKey = 'loginUnitKey';
 const String loginWitnessKey = 'loginWitnessKey';
+const String isPrinterNewKey = 'isPrinterNewKey';
 
 final divider = Divider(color: kWhite.withOpacity(0.3), height: 1);
 

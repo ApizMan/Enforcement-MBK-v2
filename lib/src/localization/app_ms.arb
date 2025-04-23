@@ -14,5 +14,12 @@
   "logout": "Log Keluar",
   "logoutDesc": "Adakah Anda Pasti Mahu Log Keluar?",
   "yes": "Ya",
-  "no": "Tidak"
+  "no": "Tidak",
+  "handheldId": "Handheld ID",
+  "idLogIn": "ID Log Masuk",
+  "totalAllNotice": "Jumlah Notis Keseluruhan",
+  "totalNoticeNotYetUpload": "Jumlah Notis Yang Belum Dimuat Naik",
+  "totalPicture": "Jumlah Gambar",
+  "totalPayTransaction": "JUmlah Transaksi Bayaran",
+  "totalAmountPayment": "Jumlah Amoun Bayaran"
 }

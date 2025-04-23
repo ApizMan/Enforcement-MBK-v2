@@ -2,6 +2,7 @@ import 'package:eo_apk_mbk_v2/helpers/constant.dart';
 import 'package:eo_apk_mbk_v2/models/models.dart';
 import 'package:eo_apk_mbk_v2/screen/screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,7 +15,13 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isInitialized = false;
   List<UserModel> userModel = []; // Initialize this
   List<OfficerUnitModel> unitModel = []; // Initialize this
-  String handHeldId = "";
+  late String handHeldId;
+
+  @override
+  void initState() {
+    handHeldId = "";
+    super.initState();
+  }
 
   @override
   void didChangeDependencies() {
@@ -36,8 +43,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBackgroundColor,
-      appBar: HeaderLayout(),
-      drawer: SidebarLayout(),
+      appBar: HeaderLayout(title: AppLocalizations.of(context)!.handHeldMBK),
+      drawer: SidebarLayout(
+        userModel: userModel,
+        unitModel: unitModel,
+        handHeldId: handHeldId,
+      ),
     );
   }
 }
