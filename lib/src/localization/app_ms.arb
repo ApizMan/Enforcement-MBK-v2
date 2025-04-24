@@ -21,5 +21,11 @@
   "totalNoticeNotYetUpload": "Jumlah Notis Yang Belum Dimuat Naik",
   "totalPicture": "Jumlah Gambar",
   "totalPayTransaction": "JUmlah Transaksi Bayaran",
-  "totalAmountPayment": "Jumlah Amoun Bayaran"
+  "totalAmountPayment": "Jumlah Amoun Bayaran",
+  "connectAndPrint": "Sambungkan & Cetak",
+  "save": "Simpan",
+  "saveDesc": "Berjaya di simpan!",
+  "macAddress": "Alamat MAC",
+  "successPrintingDesc": "✅ Kompoun Berjaya Dicetak!",
+  "newPrinter": "Pencetak Baru"
 }

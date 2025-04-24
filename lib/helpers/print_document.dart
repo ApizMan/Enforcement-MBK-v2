@@ -65,6 +65,44 @@ class PrintingDocument {
     }
   }
 
+  void drawStatusBox(Map<String, dynamic> userData, String handHeldId) {
+    const int startX = 30;
+    const int startY = 30;
+    const int boxWidth = 550;
+    const int boxHeight = 450;
+    const int lineHeight = 40;
+    const int labelX = 40;
+    const int valueX = 300;
+
+    // Reset vertical tracker
+    incrementPositionY = 0;
+
+    // Outer Box
+    drawBox(startX, startY, startX + boxWidth, startY + boxHeight);
+
+    // Title Box
+    drawBox(startX, startY, startX + boxWidth, startY + 40);
+    drawText(startX + 200, 10, 30, "STATUS");
+
+    incrementPositionY = 60;
+
+    void drawRow(String label, String value) {
+      drawText(labelX, 0, 26, label);
+      drawText(valueX, 0, 24, value);
+      incrementPositionY += lineHeight;
+    }
+
+    drawRow("Unit:", userData['unit'] ?? '-');
+    drawRow("Handheld ID:", handHeldId);
+    drawRow("Login ID:", userData['id'] ?? '-');
+    drawRow("Name:", userData['name'] ?? '-');
+    drawRow("Total Notice:", "0");
+    drawRow("Not Yet Uploaded:", "0");
+    drawRow("Total Pictures:", "0");
+    drawRow("Total Transactions:", "0");
+    drawRow("Total Amount:", "RM 0.00");
+  }
+
   String getLabelLengthCommand() => '^LL$paperLength\r\n';
   String getPrintingData() => printingData;
 }

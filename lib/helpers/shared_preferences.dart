@@ -70,4 +70,19 @@ class SharedPreferencesHelper {
 
     return isPrinterNew;
   }
+
+  static Future<void> savePrinterMAC(String printerMAC, bool isMACSave) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString(printerMACKey, printerMAC);
+    prefs.setBool(isMACSaveKey, isMACSave);
+  }
+
+  static Future<Map<String, dynamic>> getPrinterMAC() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String printerMAC = prefs.getString(printerMACKey) ?? '';
+    bool isMACSave = prefs.getBool(isMACSaveKey) ?? false;
+
+    // Return the values as a Map
+    return {'printerMAC': printerMAC, 'isMACSave': isMACSave};
+  }
 }

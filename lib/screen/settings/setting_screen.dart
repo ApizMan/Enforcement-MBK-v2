@@ -18,13 +18,16 @@ class _SettingScreenState extends State<SettingScreen> {
   List<OfficerUnitModel> unitModel = []; // Initialize this
   late String handHeldId;
   late Map<String, dynamic> userData;
+  late Map<String, dynamic> printerMAC;
 
   @override
   void initState() {
     handHeldId = "";
+    printerMAC = {};
     userData = {};
     super.initState();
     _getUserData();
+    _getPrinterMAC();
   }
 
   Future<void> _getUserData() async {
@@ -36,6 +39,16 @@ class _SettingScreenState extends State<SettingScreen> {
         'password': data['password'] ?? '',
         'unit': data['unit'] ?? '',
         'witness': data['witness'] ?? '',
+      };
+    });
+  }
+
+  Future<void> _getPrinterMAC() async {
+    final data = await SharedPreferencesHelper.getPrinterMAC();
+    setState(() {
+      printerMAC = {
+        'printerMAC': data['printerMAC'] ?? '',
+        'isMACSave': data['isMACSave'] ?? false,
       };
     });
   }
@@ -59,7 +72,11 @@ class _SettingScreenState extends State<SettingScreen> {
       appBar: HeaderLayout(title: AppLocalizations.of(context)!.setting),
       body: Padding(
         padding: const EdgeInsets.all(10.0),
-        child: SettingBodyScreen(handHeldId: handHeldId, userData: userData),
+        child: SettingBodyScreen(
+          handHeldId: handHeldId,
+          userData: userData,
+          printerMAC: printerMAC,
+        ),
       ),
     );
   }

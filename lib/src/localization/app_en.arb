@@ -21,5 +21,11 @@
   "totalNoticeNotYetUpload": "Total Notice Not Yet Been Upload",
   "totalPicture": "Total Picture",
   "totalPayTransaction": "Total Pay Transaction",
-  "totalAmountPayment": "Total Amount Payment"
+  "totalAmountPayment": "Total Amount Payment",
+  "connectAndPrint": "Connect & Print",
+  "save": "Save",
+  "saveDesc": "Successfully been save!",
+  "macAddress": "MAC Address",
+  "successPrintingDesc": "✅ Compound Successfully Printing!",
+  "newPrinter": "New Printer"
 }
