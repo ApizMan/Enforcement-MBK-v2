@@ -85,4 +85,16 @@ class SharedPreferencesHelper {
     // Return the values as a Map
     return {'printerMAC': printerMAC, 'isMACSave': isMACSave};
   }
+
+  static Future<void> saveTokenTM(String token) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString(tokenTMKey, token);
+  }
+
+  static Future<String> getTokenTM() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString(tokenTMKey) ?? '';
+
+    return token;
+  }
 }

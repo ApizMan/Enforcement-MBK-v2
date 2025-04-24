@@ -27,5 +27,9 @@
   "saveDesc": "Berjaya di simpan!",
   "macAddress": "Alamat MAC",
   "successPrintingDesc": "✅ Kompoun Berjaya Dicetak!",
-  "newPrinter": "Pencetak Baru"
+  "newPrinter": "Pencetak Baru",
+  "compoundParking": "Kompoun Letak Kereta",
+  "compoundAm": "Kompoun AM",
+  "plateNumber": "Nombor Kenderaan",
+  "verify": "Semakan"
 }

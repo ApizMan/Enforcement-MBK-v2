@@ -152,6 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               TextFieldBlocBuilder(
                                 textFieldBloc: formBloc!.password,
                                 obscureText: _obscurePassword,
+                                textInputAction: TextInputAction.done,
                                 decoration: InputDecoration(
                                   label: Text(
                                     AppLocalizations.of(context)!.password,

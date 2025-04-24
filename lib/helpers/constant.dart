@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 // Link
 const String baseUrl =
     'http://myenforcement-mbk-staging.vista-summerose.com/VistaParkingWebService/HandheldService.svc/';
+const String trafficManagementUrl =
+    'https://traffic-management.vista-summerose.com/api/traffic-management/';
+
+const String enYasinUrl =
+    'https://mycouncil.citycarpark.my/parking/ctcp/services-listerner_mbk.php';
 
 // Colors
 const Color kBlack = Colors.black;
@@ -34,6 +39,7 @@ const String loginWitnessKey = 'loginWitnessKey';
 const String isPrinterNewKey = 'isPrinterNewKey';
 const String printerMACKey = 'printerMACKey';
 const String isMACSaveKey = 'isMACSaveKey';
+const String tokenTMKey = 'tokenTMKey';
 
 final divider = Divider(color: kWhite.withOpacity(0.3), height: 1);
 

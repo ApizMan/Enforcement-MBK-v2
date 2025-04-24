@@ -1,8 +1,14 @@
+import 'package:eo_apk_mbk_v2/controllers/home_controller.dart';
+import 'package:eo_apk_mbk_v2/form_blocs/form_bloc.dart';
 import 'package:eo_apk_mbk_v2/helpers/constant.dart';
 import 'package:eo_apk_mbk_v2/models/models.dart';
+import 'package:eo_apk_mbk_v2/routes/route_manager.dart';
 import 'package:eo_apk_mbk_v2/screen/screen.dart';
+import 'package:eo_apk_mbk_v2/widgets/loading_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:get/get.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,25 +18,30 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final HomeController controller = Get.put(HomeController());
+
   bool _isInitialized = false;
-  List<UserModel> userModel = []; // Initialize this
-  List<OfficerUnitModel> unitModel = []; // Initialize this
+  List<UserModel> userModel = [];
+  List<OfficerUnitModel> unitModel = [];
   late String handHeldId;
 
   @override
   void initState() {
     handHeldId = "";
     super.initState();
+
+    Future.delayed(Duration.zero, () {
+      controller.setScreen(RouteManager.compoundParkingBody);
+    });
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
     if (!_isInitialized) {
       final arguments =
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-      if (arguments != null && arguments['userModel'] != null) {
+      if (arguments != null) {
         userModel = arguments['userModel'] as List<UserModel>;
         unitModel = arguments['unitModel'] as List<OfficerUnitModel>;
         handHeldId = arguments['handHeldId'] as String;
@@ -41,14 +52,142 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: kBackgroundColor,
-      appBar: HeaderLayout(title: AppLocalizations.of(context)!.handHeldMBK),
-      drawer: SidebarLayout(
-        userModel: userModel,
-        unitModel: unitModel,
-        handHeldId: handHeldId,
-      ),
-    );
+    return Obx(() {
+      final isCompoundParking =
+          controller.currentScreen.value == RouteManager.compoundParkingBody;
+
+      return DefaultTabController(
+        length: 3,
+        child: MultiBlocProvider(
+          providers: [
+            // Validation Plate Number
+            BlocProvider<VehicleValidationFormBloc>(
+              create: (context) => VehicleValidationFormBloc(),
+            ),
+
+            // Finalize
+            BlocProvider<CompoundParkingFormBloc>(
+              create: (context) => CompoundParkingFormBloc(),
+            ),
+            BlocProvider<CompoundAmFormBloc>(
+              create: (context) => CompoundAmFormBloc(),
+            ),
+          ],
+          child: Builder(
+            builder: (context) {
+              // Validation Plate Number
+              final vehicleValidationFormBloc =
+                  BlocProvider.of<VehicleValidationFormBloc>(context);
+
+              // Finalize
+              final compoundParkingFormBloc =
+                  BlocProvider.of<CompoundParkingFormBloc>(context);
+              final compoundAmFormBloc = BlocProvider.of<CompoundAmFormBloc>(
+                context,
+              );
+
+              return FormBlocListener<
+                VehicleValidationFormBloc,
+                String,
+                String
+              >(
+                onSubmitting: (context, state) {
+                  LoadingDialog.show(context);
+                },
+                onSubmissionFailed:
+                    (context, state) => LoadingDialog.hide(context),
+                onSuccess: (context, state) {
+                  LoadingDialog.hide(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(state.successResponse!)),
+                  );
+                },
+                onFailure: (context, state) {
+                  LoadingDialog.hide(context);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(state.failureResponse!)),
+                  );
+                },
+                child: FormBlocListener<
+                  CompoundParkingFormBloc,
+                  String,
+                  String
+                >(
+                  onSubmitting: (context, state) {
+                    LoadingDialog.show(context);
+                  },
+                  onSubmissionFailed:
+                      (context, state) => LoadingDialog.hide(context),
+                  onSuccess: (context, state) {
+                    LoadingDialog.hide(context);
+                    Navigator.popAndPushNamed(context, RouteManager.homeScreen);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(state.successResponse!)),
+                    );
+                  },
+                  onFailure: (context, state) {
+                    LoadingDialog.hide(context);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(state.failureResponse!)),
+                    );
+                  },
+                  child: FormBlocListener<CompoundAmFormBloc, String, String>(
+                    onSubmitting: (context, state) {
+                      LoadingDialog.show(context);
+                    },
+                    onSubmissionFailed:
+                        (context, state) => LoadingDialog.hide(context),
+                    onSuccess: (context, state) {
+                      LoadingDialog.hide(context);
+                      Navigator.popAndPushNamed(
+                        context,
+                        RouteManager.homeScreen,
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(state.successResponse!)),
+                      );
+                    },
+                    onFailure: (context, state) {
+                      LoadingDialog.hide(context);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(state.failureResponse!)),
+                      );
+                    },
+                    child: Scaffold(
+                      backgroundColor: kBackgroundColor,
+                      appBar: HeaderLayout(
+                        title: AppLocalizations.of(context)!.handHeldMBK,
+                        showTabBar: isCompoundParking,
+                        compoundParkingFormBloc: compoundParkingFormBloc,
+                        compoundAmFormBloc: compoundAmFormBloc,
+                      ),
+                      drawer: SidebarLayout(
+                        userModel: userModel,
+                        unitModel: unitModel,
+                        handHeldId: handHeldId,
+                      ),
+                      body:
+                          isCompoundParking
+                              ? CompoundParkingScreen(
+                                compoundParkingFormBloc:
+                                    compoundParkingFormBloc,
+                                vehicleValidationFormBloc:
+                                    vehicleValidationFormBloc,
+                              )
+                              : CompoundAmScreen(
+                                compoundAmFormBloc: compoundAmFormBloc,
+                              ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    });
   }
 }

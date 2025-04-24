@@ -27,5 +27,9 @@
   "saveDesc": "Successfully been save!",
   "macAddress": "MAC Address",
   "successPrintingDesc": "✅ Compound Successfully Printing!",
-  "newPrinter": "New Printer"
+  "newPrinter": "New Printer",
+  "compoundParking": "Compound Parking",
+  "compoundAm": "Compound AM",
+  "plateNumber": "Plate Number",
+  "verify": "Verify"
 }

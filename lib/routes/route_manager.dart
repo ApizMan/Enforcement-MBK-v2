@@ -9,6 +9,12 @@ class RouteManager {
   // Dashboard
   static const homeScreen = '/homeScreen';
   static const settingScreen = '/settingScreen';
+  static const compoundParkingScreen = '/compoundParkingScreen';
+  static const compoundAmScreen = '/compoundAmScreen';
+
+  // Change Body
+  static const compoundParkingBody = 'compoundParkingBody';
+  static const compoundAmBody = 'compoundAmBody';
 
   static final routes = [
     // Auth
@@ -18,5 +24,7 @@ class RouteManager {
     // Dashboard
     GetPage(name: homeScreen, page: () => HomeScreen()),
     GetPage(name: settingScreen, page: () => SettingScreen()),
+    GetPage(name: compoundParkingScreen, page: () => CompoundParkingScreen()),
+    GetPage(name: compoundAmScreen, page: () => CompoundAmScreen()),
   ];
 }
