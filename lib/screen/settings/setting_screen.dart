@@ -69,7 +69,10 @@ class _SettingScreenState extends State<SettingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBackgroundColor,
-      appBar: HeaderLayout(title: AppLocalizations.of(context)!.setting),
+      appBar: HeaderLayout(
+        bottomSize: noBottomAppBarSize,
+        title: AppLocalizations.of(context)!.setting,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(10.0),
         child: SettingBodyScreen(

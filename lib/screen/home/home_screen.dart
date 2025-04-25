@@ -177,6 +177,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Scaffold(
                       backgroundColor: kBackgroundColor,
                       appBar: HeaderLayout(
+                        bottomSize:
+                            isCompoundParking
+                                ? hasBottomAppBarSize
+                                : noBottomAppBarSize,
                         title: AppLocalizations.of(context)!.handHeldMBK,
                         showTabBar: isCompoundParking,
                         compoundParkingFormBloc: compoundParkingFormBloc,

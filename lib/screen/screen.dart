@@ -10,3 +10,4 @@ export 'settings/components/setting_body_screen.dart';
 export 'layouts/printer_layout.dart';
 export 'home/compound_parking/compound_parking_screen.dart';
 export 'home/compound_am/compound_am_screen.dart';
+export 'home/compound_parking/components/camera_screen.dart';

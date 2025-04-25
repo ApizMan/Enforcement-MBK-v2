@@ -4,6 +4,7 @@ import 'package:eo_apk_mbk_v2/form_blocs/form_bloc.dart';
 import 'package:eo_apk_mbk_v2/helpers/constant.dart';
 import 'package:eo_apk_mbk_v2/helpers/theme.dart';
 import 'package:eo_apk_mbk_v2/models/models.dart';
+import 'package:eo_apk_mbk_v2/routes/route_manager.dart';
 import 'package:eo_apk_mbk_v2/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
@@ -288,6 +289,20 @@ class CompoundParkingScreen extends StatelessWidget {
                 ),
               );
             },
+          ),
+
+          spaceVertical(height: 20.0),
+
+          PrimaryButton(
+            buttonWidth: 1,
+            borderRadius: 10.0,
+            color: accentCanvasColor,
+            onPressed:
+                () => Navigator.pushNamed(context, RouteManager.cameraScreen),
+            label: Text(
+              AppLocalizations.of(context)!.camera,
+              style: textStyleNormal(color: kWhite),
+            ),
           ),
         ],
       ),

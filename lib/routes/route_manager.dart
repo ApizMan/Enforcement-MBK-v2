@@ -12,6 +12,9 @@ class RouteManager {
   static const compoundParkingScreen = '/compoundParkingScreen';
   static const compoundAmScreen = '/compoundAmScreen';
 
+  // Camera
+  static const cameraScreen = '/cameraScreen';
+
   // Change Body
   static const compoundParkingBody = 'compoundParkingBody';
   static const compoundAmBody = 'compoundAmBody';
@@ -26,5 +29,8 @@ class RouteManager {
     GetPage(name: settingScreen, page: () => SettingScreen()),
     GetPage(name: compoundParkingScreen, page: () => CompoundParkingScreen()),
     GetPage(name: compoundAmScreen, page: () => CompoundAmScreen()),
+
+    // Camera
+    GetPage(name: cameraScreen, page: () => CameraScreen()),
   ];
 }

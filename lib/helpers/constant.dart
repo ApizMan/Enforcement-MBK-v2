@@ -65,3 +65,6 @@ const kTextWarning = Color.fromRGBO(255, 251, 235, 1.0);
 // Info
 const kBgInfo = kPrimaryColor;
 const kTextInfo = Color.fromRGBO(236, 253, 245, 1.0);
+
+const double hasBottomAppBarSize = 48;
+const double noBottomAppBarSize = 10;

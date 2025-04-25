@@ -12,9 +12,11 @@ class HeaderLayout extends StatelessWidget implements PreferredSizeWidget {
   final CompoundAmFormBloc? compoundAmFormBloc;
   final String title;
   final bool showTabBar;
+  final double bottomSize;
   const HeaderLayout({
     super.key,
     required this.title,
+    required this.bottomSize,
     this.showTabBar = false,
     this.compoundAmFormBloc,
     this.compoundParkingFormBloc,
@@ -118,5 +120,5 @@ class HeaderLayout extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 48);
+  Size get preferredSize => Size.fromHeight(kToolbarHeight + bottomSize);
 }

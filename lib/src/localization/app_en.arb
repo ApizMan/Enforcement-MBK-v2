@@ -37,5 +37,7 @@
   "model": "Model",
   "others": "Others",
   "brands": "Brands",
-  "color": "Color"
+  "color": "Color",
+  "camera": "Camera",
+  "formPicture": "Form Picture"
 }
