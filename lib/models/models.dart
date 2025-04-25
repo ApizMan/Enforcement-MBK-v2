@@ -3,3 +3,7 @@ export 'officer_model/offence_data_model.dart';
 export 'officer_model/officer_unit_model.dart';
 export 'login_model.dart';
 export 'vehicle_model.dart';
+export 'vehicle_brand_model.dart';
+export 'vehicle_models_model.dart';
+export 'vehicle_type_model.dart';
+export 'vehicle_color_model.dart';

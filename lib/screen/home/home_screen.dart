@@ -24,6 +24,10 @@ class _HomeScreenState extends State<HomeScreen> {
   List<UserModel> userModel = [];
   List<OfficerUnitModel> unitModel = [];
   late String handHeldId;
+  List<VehicleTypeModel> vehicleTypeModel = [];
+  List<VehicleBrandModel> vehicleMakesModel = [];
+  List<VehicleModelsModel> vehicleModelsModel = [];
+  List<VehicleColorModel> vehicleColorModel = [];
 
   @override
   void initState() {
@@ -45,6 +49,14 @@ class _HomeScreenState extends State<HomeScreen> {
         userModel = arguments['userModel'] as List<UserModel>;
         unitModel = arguments['unitModel'] as List<OfficerUnitModel>;
         handHeldId = arguments['handHeldId'] as String;
+        vehicleTypeModel =
+            arguments['vehicleTypeModel'] as List<VehicleTypeModel>;
+        vehicleMakesModel =
+            arguments['vehicleMakesModel'] as List<VehicleBrandModel>;
+        vehicleModelsModel =
+            arguments['vehicleModelsModel'] as List<VehicleModelsModel>;
+        vehicleColorModel =
+            arguments['vehicleColorModel'] as List<VehicleColorModel>;
       }
       _isInitialized = true;
     }
@@ -67,7 +79,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // Finalize
             BlocProvider<CompoundParkingFormBloc>(
-              create: (context) => CompoundParkingFormBloc(),
+              create:
+                  (context) => CompoundParkingFormBloc(
+                    vehicleTypeModel: vehicleTypeModel,
+                    vehicleMakesModel: vehicleMakesModel,
+                    vehicleModelsModel: vehicleModelsModel,
+                    vehicleColorModel: vehicleColorModel,
+                  ),
             ),
             BlocProvider<CompoundAmFormBloc>(
               create: (context) => CompoundAmFormBloc(),

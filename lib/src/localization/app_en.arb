@@ -31,5 +31,11 @@
   "compoundParking": "Compound Parking",
   "compoundAm": "Compound AM",
   "plateNumber": "Plate Number",
-  "verify": "Verify"
+  "verify": "Verify",
+  "taxRoadNumber": "Tax Road Number",
+  "bodyType": "Body Type",
+  "model": "Model",
+  "others": "Others",
+  "brands": "Brands",
+  "color": "Color"
 }

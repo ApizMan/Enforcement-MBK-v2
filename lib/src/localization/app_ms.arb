@@ -31,5 +31,11 @@
   "compoundParking": "Kompoun Letak Kereta",
   "compoundAm": "Kompoun AM",
   "plateNumber": "Nombor Kenderaan",
-  "verify": "Semakan"
+  "verify": "Semakan",
+  "taxRoadNumber": "Nombor Cukai Jalan",
+  "bodyType": "Jenis Badan",
+  "model": "Model",
+  "others": "Lain-Lain",
+  "brands": "Jenama",
+  "color": "Warna"
 }

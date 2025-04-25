@@ -59,6 +59,10 @@ class _SplashScreenState extends State<SplashScreen> {
             'userModel': data.users,
             'unitModel': data.units,
             'handHeldId': handHeldId,
+            'vehicleTypeModel': data.vehicleTypeModel,
+            'vehicleMakesModel': data.vehicleMakesModel,
+            'vehicleModelsModel': data.vehicleModelsModel,
+            'vehicleColorModel': data.vehicleColorModel,
           },
         );
       } else {

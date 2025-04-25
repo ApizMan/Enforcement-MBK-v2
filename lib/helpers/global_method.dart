@@ -17,7 +17,14 @@ Future<OffenceDataModel> fetchOffenceAreasList() async {
   }
 
   if (deviceId == null) {
-    return OffenceDataModel(users: [], units: []);
+    return OffenceDataModel(
+      users: [],
+      units: [],
+      vehicleMakesModel: [],
+      vehicleModelsModel: [],
+      vehicleTypeModel: [],
+      vehicleColorModel: [],
+    );
   }
 
   final response = await OffenceResources.getDevice(
@@ -35,6 +42,10 @@ Future<OffenceDataModel> fetchOffenceAreasList() async {
 
     List<UserModel> users = [];
     List<OfficerUnitModel> units = [];
+    List<VehicleBrandModel> vehicleMakesModel = [];
+    List<VehicleModelsModel> vehicleModelsModel = [];
+    List<VehicleTypeModel> vehicleTypeModel = [];
+    List<VehicleColorModel> vehicleColorModel = [];
 
     if (lookupResponse != null) {
       if (lookupResponse['OfficerInfos'] is List) {
@@ -50,10 +61,52 @@ Future<OffenceDataModel> fetchOffenceAreasList() async {
                 .map((e) => OfficerUnitModel.fromJson(e))
                 .toList();
       }
+
+      if (lookupResponse['VehicleMakes'] is List) {
+        vehicleMakesModel =
+            (lookupResponse['VehicleMakes'] as List)
+                .map((e) => VehicleBrandModel.fromJson(e))
+                .toList();
+      }
+
+      if (lookupResponse['VehicleModels'] is List) {
+        vehicleModelsModel =
+            (lookupResponse['VehicleModels'] as List)
+                .map((e) => VehicleModelsModel.fromJson(e))
+                .toList();
+      }
+
+      if (lookupResponse['VehicleTypes'] is List) {
+        vehicleTypeModel =
+            (lookupResponse['VehicleTypes'] as List)
+                .map((e) => VehicleTypeModel.fromJson(e))
+                .toList();
+      }
+
+      if (lookupResponse['VehicleColors'] is List) {
+        vehicleColorModel =
+            (lookupResponse['VehicleColors'] as List)
+                .map((e) => VehicleColorModel.fromJson(e))
+                .toList();
+      }
     }
 
-    return OffenceDataModel(users: users, units: units);
+    return OffenceDataModel(
+      users: users,
+      units: units,
+      vehicleMakesModel: vehicleMakesModel,
+      vehicleModelsModel: vehicleModelsModel,
+      vehicleTypeModel: vehicleTypeModel,
+      vehicleColorModel: vehicleColorModel,
+    );
   }
 
-  return OffenceDataModel(users: [], units: []);
+  return OffenceDataModel(
+    users: [],
+    units: [],
+    vehicleMakesModel: [],
+    vehicleModelsModel: [],
+    vehicleTypeModel: [],
+    vehicleColorModel: [],
+  );
 }
