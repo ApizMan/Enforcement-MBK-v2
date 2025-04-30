@@ -39,5 +39,9 @@
   "brands": "Jenama",
   "color": "Warna",
   "camera": "Kamera",
-  "formPicture": "Form Gambar"
+  "formPicture": "Form Gambar",
+  "legalProvisions": "Peruntukan Undang-Undang",
+  "sectionOrOrderOrMethod": "Seksyen/Perintah/Kaedah",
+  "fault": "Kesalahan",
+  "zone": "Zon"
 }

@@ -63,6 +63,10 @@ class _SplashScreenState extends State<SplashScreen> {
             'vehicleMakesModel': data.vehicleMakesModel,
             'vehicleModelsModel': data.vehicleModelsModel,
             'vehicleColorModel': data.vehicleColorModel,
+            'offenceActModel': data.offenceActModel,
+            'offenceSectionModel': data.offenceSectionModel,
+            'offenceAreaModel': data.offenceAreaModel,
+            'offenceLocationModel': data.offenceLocationModel,
           },
         );
       } else {

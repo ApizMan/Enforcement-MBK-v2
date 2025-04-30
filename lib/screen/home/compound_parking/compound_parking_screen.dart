@@ -22,7 +22,11 @@ class CompoundParkingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TabBarView(
-      children: [VehicleFault(context), ActFault(), SummaryFault()],
+      children: [
+        VehicleFault(context),
+        ActFault(context),
+        SummaryFault(context),
+      ],
     );
   }
 
@@ -309,11 +313,142 @@ class CompoundParkingScreen extends StatelessWidget {
     );
   }
 
-  Widget SummaryFault() {
-    return SizedBox();
+  Widget ActFault(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Column(
+        children: [
+          DropdownFieldBlocBuilder<OffenceActModel?>(
+            showEmptyItem: false,
+            selectFieldBloc: compoundParkingFormBloc!.actLaw,
+            decoration: InputDecoration(
+              label: Text(AppLocalizations.of(context)!.legalProvisions),
+              prefixIcon: const Icon(
+                Icons.account_balance_rounded,
+                color: accentCanvasColor,
+              ),
+              border: OutlineInputBorder(
+                borderSide: const BorderSide(color: kBlack),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: kBlack),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              filled: true,
+              fillColor: Colors.white.withOpacity(0.8),
+            ),
+            itemBuilder: (context, value) {
+              return FieldItem(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Text(value?.description ?? 'Unknown'),
+                ),
+              );
+            },
+          ),
+
+          DropdownFieldBlocBuilder<OffenceSectionModel?>(
+            showEmptyItem: false,
+            selectFieldBloc: compoundParkingFormBloc!.section,
+            decoration: InputDecoration(
+              label: Text(AppLocalizations.of(context)!.sectionOrOrderOrMethod),
+              prefixIcon: const Icon(
+                Icons.account_box_rounded,
+                color: accentCanvasColor,
+              ),
+              border: OutlineInputBorder(
+                borderSide: const BorderSide(color: kBlack),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: kBlack),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              filled: true,
+              fillColor: Colors.white.withOpacity(0.8),
+            ),
+            itemBuilder: (context, value) {
+              return FieldItem(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Text(value?.sectionNo ?? 'Unknown'),
+                ),
+              );
+            },
+          ),
+
+          BlocBuilder<
+            SelectFieldBloc<OffenceSectionModel, dynamic>,
+            SelectFieldBlocState<OffenceSectionModel, dynamic>
+          >(
+            bloc: compoundParkingFormBloc!.section,
+            builder: (context, state) {
+              final hasSelection = state.value != null;
+
+              return SizedBox(
+                height: hasSelection ? 200 : null,
+                child: TextFieldBlocBuilder(
+                  expands: hasSelection,
+                  maxLines: hasSelection ? null : 1,
+                  minLines: hasSelection ? null : 1,
+                  isEnabled: false,
+                  textFieldBloc: compoundParkingFormBloc!.fault,
+                  textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                    label: Text(AppLocalizations.of(context)!.fault),
+                    prefixIcon: const Icon(
+                      Icons.error,
+                      color: accentCanvasColor,
+                    ),
+                    border: OutlineInputBorder(
+                      borderSide: const BorderSide(color: kBlack),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: kBlack),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.8),
+                  ),
+                ),
+              );
+            },
+          ),
+
+          DropdownFieldBlocBuilder<OffenceAreaModel?>(
+            showEmptyItem: false,
+            selectFieldBloc: compoundParkingFormBloc!.area,
+            decoration: InputDecoration(
+              label: Text(AppLocalizations.of(context)!.zone),
+              prefixIcon: const Icon(Icons.flag, color: accentCanvasColor),
+              border: OutlineInputBorder(
+                borderSide: const BorderSide(color: kBlack),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: kBlack),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              filled: true,
+              fillColor: Colors.white.withOpacity(0.8),
+            ),
+            itemBuilder: (context, value) {
+              return FieldItem(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Text(value?.description ?? 'Unknown'),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
   }
 
-  Widget ActFault() {
+  Widget SummaryFault(BuildContext context) {
     return SizedBox();
   }
 }

@@ -7,3 +7,7 @@ export 'vehicle_brand_model.dart';
 export 'vehicle_models_model.dart';
 export 'vehicle_type_model.dart';
 export 'vehicle_color_model.dart';
+export 'officer_model/offence_act_model.dart';
+export 'officer_model/offence_section_model.dart';
+export 'officer_model/offence_area_model.dart';
+export 'officer_model/offence_location_model.dart';

@@ -24,6 +24,10 @@ Future<OffenceDataModel> fetchOffenceAreasList() async {
       vehicleModelsModel: [],
       vehicleTypeModel: [],
       vehicleColorModel: [],
+      offenceActModel: [],
+      offenceSectionModel: [],
+      offenceAreaModel: [],
+      offenceLocationModel: [],
     );
   }
 
@@ -46,6 +50,10 @@ Future<OffenceDataModel> fetchOffenceAreasList() async {
     List<VehicleModelsModel> vehicleModelsModel = [];
     List<VehicleTypeModel> vehicleTypeModel = [];
     List<VehicleColorModel> vehicleColorModel = [];
+    List<OffenceActModel> offenceActModel = [];
+    List<OffenceSectionModel> offenceSectionModel = [];
+    List<OffenceAreaModel> offenceAreaModel = [];
+    List<OffenceLocationModel> offenceLocationModel = [];
 
     if (lookupResponse != null) {
       if (lookupResponse['OfficerInfos'] is List) {
@@ -89,6 +97,34 @@ Future<OffenceDataModel> fetchOffenceAreasList() async {
                 .map((e) => VehicleColorModel.fromJson(e))
                 .toList();
       }
+
+      if (lookupResponse['OffenceActs'] is List) {
+        offenceActModel =
+            (lookupResponse['OffenceActs'] as List)
+                .map((e) => OffenceActModel.fromJson(e))
+                .toList();
+      }
+
+      if (lookupResponse['OffenceSections'] is List) {
+        offenceSectionModel =
+            (lookupResponse['OffenceSections'] as List)
+                .map((e) => OffenceSectionModel.fromJson(e))
+                .toList();
+      }
+
+      if (lookupResponse['OffenceAreas'] is List) {
+        offenceAreaModel =
+            (lookupResponse['OffenceAreas'] as List)
+                .map((e) => OffenceAreaModel.fromJson(e))
+                .toList();
+      }
+
+      if (lookupResponse['OffenceLocations'] is List) {
+        offenceLocationModel =
+            (lookupResponse['OffenceLocations'] as List)
+                .map((e) => OffenceLocationModel.fromJson(e))
+                .toList();
+      }
     }
 
     return OffenceDataModel(
@@ -98,6 +134,10 @@ Future<OffenceDataModel> fetchOffenceAreasList() async {
       vehicleModelsModel: vehicleModelsModel,
       vehicleTypeModel: vehicleTypeModel,
       vehicleColorModel: vehicleColorModel,
+      offenceActModel: offenceActModel,
+      offenceSectionModel: offenceSectionModel,
+      offenceAreaModel: offenceAreaModel,
+      offenceLocationModel: offenceLocationModel,
     );
   }
 
@@ -108,5 +148,9 @@ Future<OffenceDataModel> fetchOffenceAreasList() async {
     vehicleModelsModel: [],
     vehicleTypeModel: [],
     vehicleColorModel: [],
+    offenceActModel: [],
+    offenceSectionModel: [],
+    offenceAreaModel: [],
+    offenceLocationModel: [],
   );
 }

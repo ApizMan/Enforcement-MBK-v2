@@ -7,6 +7,10 @@ class OffenceDataModel {
   final List<VehicleModelsModel> vehicleModelsModel;
   final List<VehicleTypeModel> vehicleTypeModel;
   final List<VehicleColorModel> vehicleColorModel;
+  final List<OffenceActModel> offenceActModel;
+  final List<OffenceSectionModel> offenceSectionModel;
+  final List<OffenceAreaModel> offenceAreaModel;
+  final List<OffenceLocationModel> offenceLocationModel;
 
   OffenceDataModel({
     required this.users,
@@ -15,5 +19,9 @@ class OffenceDataModel {
     required this.vehicleModelsModel,
     required this.vehicleTypeModel,
     required this.vehicleColorModel,
+    required this.offenceActModel,
+    required this.offenceSectionModel,
+    required this.offenceAreaModel,
+    required this.offenceLocationModel,
   });
 }

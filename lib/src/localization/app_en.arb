@@ -39,5 +39,9 @@
   "brands": "Brands",
   "color": "Color",
   "camera": "Camera",
-  "formPicture": "Form Picture"
+  "formPicture": "Form Picture",
+  "legalProvisions": "Legal Provisions",
+  "sectionOrOrderOrMethod": "Section/Order/Method",
+  "fault": "Fault",
+  "zone": "Zone"
 }

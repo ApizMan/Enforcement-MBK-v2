@@ -9,7 +9,12 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
   final List<VehicleModelsModel> vehicleModelsModel;
   final List<VehicleTypeModel> vehicleTypeModel;
   final List<VehicleColorModel> vehicleColorModel;
+  final List<OffenceActModel> offenceActModel;
+  final List<OffenceSectionModel> offenceSectionModel;
+  final List<OffenceAreaModel> offenceAreaModel;
+  final List<OffenceLocationModel> offenceLocationModel;
 
+  // First Page
   final taxNumber = TextFieldBloc(validators: [InputValidator.required]);
 
   final type = SelectFieldBloc<VehicleTypeModel, dynamic>(
@@ -30,10 +35,27 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
 
   final otherBrand = TextFieldBloc();
   final otherModel = TextFieldBloc();
-
-  // Use this to track if 'Lain-Lain' is selected
   final showOtherBrand = BooleanFieldBloc();
   final showOtherModel = BooleanFieldBloc();
+
+  // Second Page
+  final actLaw = SelectFieldBloc<OffenceActModel, dynamic>(
+    validators: [InputValidator.required],
+  );
+
+  final section = SelectFieldBloc<OffenceSectionModel, dynamic>(
+    validators: [InputValidator.required],
+  );
+
+  final fault = TextFieldBloc(validators: [InputValidator.required]);
+
+  final area = SelectFieldBloc<OffenceAreaModel, dynamic>(
+    validators: [InputValidator.required],
+  );
+
+  final locations = SelectFieldBloc<OffenceLocationModel, dynamic>(
+    validators: [InputValidator.required],
+  );
 
   static final VehicleBrandModel otherMakeItem = VehicleBrandModel(
     id: '__other_make__',
@@ -51,13 +73,20 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
     required this.vehicleMakesModel,
     required this.vehicleModelsModel,
     required this.vehicleColorModel,
+    required this.offenceActModel,
+    required this.offenceSectionModel,
+    required this.offenceAreaModel,
+    required this.offenceLocationModel,
   }) {
+    // --- First Page Setup ---
     type.updateItems(vehicleTypeModel);
     color.updateItems(vehicleColorModel);
-    // Add "Lain-Lain" to list
+
+    // Add 'Lain-Lain' brand
     final updatedMakes = [...vehicleMakesModel, otherMakeItem];
     brand.updateItems(updatedMakes);
 
+    // Listen Brand Selection
     brand.stream.listen((value) {
       final selectedMake = value.value;
 
@@ -83,15 +112,11 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       final isOtherBrandFilled = value.value.trim().isNotEmpty;
 
       if (isOtherBrandFilled) {
-        // Set the brand dropdown to "Lain-Lain"
         brand.updateValue(otherMakeItem);
-
-        // Populate model dropdown with just "Lain-Lain" if not already set
         model.updateItems([otherTypeItem]);
-        model.updateValue(null); // Reset model selection
-        showOtherModel.updateValue(false); // Initially hide otherModel
+        model.updateValue(null);
+        showOtherModel.updateValue(false);
       } else {
-        // Clear model if "otherBrand" is cleared
         model.updateItems([]);
         model.updateValue(null);
         showOtherModel.updateValue(false);
@@ -103,8 +128,41 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       showOtherModel.updateValue(selectedModel?.id == '__other_model__');
     });
 
+    // --- Second Page Setup (Act & Section) ---
+    actLaw.updateItems(offenceActModel);
+    area.updateItems(offenceAreaModel);
+    locations.updateItems(offenceLocationModel);
+
+    actLaw.stream.listen((value) {
+      final selectedAct = value.value;
+
+      if (selectedAct != null) {
+        final filteredSections =
+            offenceSectionModel
+                .where((section) => section.actId == selectedAct.id)
+                .toList();
+
+        section.updateItems(filteredSections);
+      } else {
+        section.updateItems([]);
+      }
+
+      section.clear();
+    });
+
+    // 🔽 New code to auto-fill fault field from selected section
+    section.stream.listen((value) {
+      final selectedSection = value.value;
+      if (selectedSection != null) {
+        fault.updateValue(selectedSection.description ?? '');
+      } else {
+        fault.updateValue('');
+      }
+    });
+
     addFieldBlocs(
       fieldBlocs: [
+        // First Page
         taxNumber,
         type,
         brand,
@@ -114,6 +172,12 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
         showOtherBrand,
         showOtherModel,
         color,
+
+        // Second Page
+        actLaw,
+        section,
+        fault,
+        area,
       ],
     );
   }

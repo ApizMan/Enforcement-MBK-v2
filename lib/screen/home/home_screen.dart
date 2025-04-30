@@ -28,6 +28,10 @@ class _HomeScreenState extends State<HomeScreen> {
   List<VehicleBrandModel> vehicleMakesModel = [];
   List<VehicleModelsModel> vehicleModelsModel = [];
   List<VehicleColorModel> vehicleColorModel = [];
+  List<OffenceActModel> offenceActModel = [];
+  List<OffenceSectionModel> offenceSectionModel = [];
+  List<OffenceAreaModel> offenceAreaModel = [];
+  List<OffenceLocationModel> offenceLocationModel = [];
 
   @override
   void initState() {
@@ -57,6 +61,13 @@ class _HomeScreenState extends State<HomeScreen> {
             arguments['vehicleModelsModel'] as List<VehicleModelsModel>;
         vehicleColorModel =
             arguments['vehicleColorModel'] as List<VehicleColorModel>;
+        offenceActModel = arguments['offenceActModel'] as List<OffenceActModel>;
+        offenceSectionModel =
+            arguments['offenceSectionModel'] as List<OffenceSectionModel>;
+        offenceAreaModel =
+            arguments['offenceAreaModel'] as List<OffenceAreaModel>;
+        offenceLocationModel =
+            arguments['offenceLocationModel'] as List<OffenceLocationModel>;
       }
       _isInitialized = true;
     }
@@ -85,6 +96,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     vehicleMakesModel: vehicleMakesModel,
                     vehicleModelsModel: vehicleModelsModel,
                     vehicleColorModel: vehicleColorModel,
+                    offenceActModel: offenceActModel,
+                    offenceSectionModel: offenceSectionModel,
+                    offenceAreaModel: offenceAreaModel,
+                    offenceLocationModel: offenceLocationModel,
                   ),
             ),
             BlocProvider<CompoundAmFormBloc>(
