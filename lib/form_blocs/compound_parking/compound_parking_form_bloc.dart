@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:eo_apk_mbk_v2/form_blocs/form_bloc.dart';
+import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
 import 'package:eo_apk_mbk_v2/helpers/validators.dart';
 import 'package:eo_apk_mbk_v2/models/models.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
@@ -13,6 +15,7 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
   final List<OffenceSectionModel> offenceSectionModel;
   final List<OffenceAreaModel> offenceAreaModel;
   final List<OffenceLocationModel> offenceLocationModel;
+  final VehicleValidationFormBloc vehicleValidationFormBloc;
 
   // First Page
   final taxNumber = TextFieldBloc(validators: [InputValidator.required]);
@@ -53,9 +56,22 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
     validators: [InputValidator.required],
   );
 
-  final locations = SelectFieldBloc<OffenceLocationModel, dynamic>(
+  final placement = SelectFieldBloc<OffenceLocationModel, dynamic>(
     validators: [InputValidator.required],
   );
+
+  final otherPlacement = TextFieldBloc();
+  final showOtherPlacement = BooleanFieldBloc();
+
+  final locationDetail = TextFieldBloc();
+  final squarePoleNo = TextFieldBloc();
+
+  final vehicleClamping = SelectFieldBloc<String, dynamic>(
+    initialValue: 'Tidak',
+    items: ['Ya', 'Tidak'],
+  );
+
+  final notes = TextFieldBloc();
 
   static final VehicleBrandModel otherMakeItem = VehicleBrandModel(
     id: '__other_make__',
@@ -68,6 +84,12 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
     description: 'Lain-Lain',
   );
 
+  static final OffenceLocationModel otherPlacementItem = OffenceLocationModel(
+    id: '__other_placement__',
+    areaID: '__other_placement__',
+    description: 'Lain-Lain',
+  );
+
   CompoundParkingFormBloc({
     required this.vehicleTypeModel,
     required this.vehicleMakesModel,
@@ -77,16 +99,15 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
     required this.offenceSectionModel,
     required this.offenceAreaModel,
     required this.offenceLocationModel,
+    required this.vehicleValidationFormBloc,
   }) {
     // --- First Page Setup ---
     type.updateItems(vehicleTypeModel);
     color.updateItems(vehicleColorModel);
 
-    // Add 'Lain-Lain' brand
     final updatedMakes = [...vehicleMakesModel, otherMakeItem];
     brand.updateItems(updatedMakes);
 
-    // Listen Brand Selection
     brand.stream.listen((value) {
       final selectedMake = value.value;
 
@@ -128,10 +149,9 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       showOtherModel.updateValue(selectedModel?.id == '__other_model__');
     });
 
-    // --- Second Page Setup (Act & Section) ---
+    // --- Second Page Setup (Act & Section & Area & Location) ---
     actLaw.updateItems(offenceActModel);
     area.updateItems(offenceAreaModel);
-    locations.updateItems(offenceLocationModel);
 
     actLaw.stream.listen((value) {
       final selectedAct = value.value;
@@ -141,7 +161,6 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
             offenceSectionModel
                 .where((section) => section.actId == selectedAct.id)
                 .toList();
-
         section.updateItems(filteredSections);
       } else {
         section.updateItems([]);
@@ -150,13 +169,47 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       section.clear();
     });
 
-    // 🔽 New code to auto-fill fault field from selected section
     section.stream.listen((value) {
       final selectedSection = value.value;
       if (selectedSection != null) {
         fault.updateValue(selectedSection.description ?? '');
       } else {
         fault.updateValue('');
+      }
+    });
+
+    area.stream.listen((value) {
+      final selectedArea = value.value;
+
+      if (selectedArea != null) {
+        final filteredLocations =
+            offenceLocationModel
+                .where((location) => location.areaID == selectedArea.id)
+                .toList();
+        placement.updateItems([...filteredLocations, otherPlacementItem]);
+      } else {
+        placement.updateItems([]);
+      }
+
+      placement.clear();
+    });
+
+    placement.stream.listen((value) {
+      final selectedLocation = value.value;
+      showOtherPlacement.updateValue(
+        selectedLocation?.id == '__other_placement__',
+      );
+    });
+
+    otherPlacement.stream.listen((value) {
+      final isOtherLocationFilled = value.value.trim().isNotEmpty;
+
+      if (isOtherLocationFilled) {
+        placement.updateValue(otherPlacementItem);
+        showOtherPlacement.updateValue(true);
+      } else {
+        placement.updateValue(null);
+        showOtherPlacement.updateValue(false);
       }
     });
 
@@ -178,12 +231,36 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
         section,
         fault,
         area,
+        placement,
+        otherPlacement,
+        showOtherPlacement,
+        locationDetail,
+        squarePoleNo,
+        vehicleClamping,
+        notes,
       ],
     );
   }
 
   @override
-  FutureOr<void> onSubmitting() {
-    emitSuccess();
+  FutureOr<void> onSubmitting() async {
+    try {
+      final officerData = await SharedPreferencesHelper.getLoginCredential();
+      final officerMobile = await SharedPreferencesHelper.getHandheldId();
+
+      final compoundModel = OfficerCompoundModel();
+
+      compoundModel.officerID = officerData['name'];
+      compoundModel.officerUnit = officerData['unit'];
+      compoundModel.officerSaksi = officerData['witness'];
+      compoundModel.handheldCode = officerMobile;
+      compoundModel.vehicleNo = vehicleValidationFormBloc.plateNumber.value;
+      compoundModel.roadTaxNo = taxNumber.value;
+      compoundModel.vehicleType = type.value!.description;
+
+      emitSuccess();
+    } catch (e) {
+      e.toString();
+    }
   }
 }

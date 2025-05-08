@@ -11,3 +11,6 @@ export 'layouts/printer_layout.dart';
 export 'home/compound_parking/compound_parking_screen.dart';
 export 'home/compound_am/compound_am_screen.dart';
 export 'home/compound_parking/components/camera_screen.dart';
+export 'home/compound_parking/components/vehicle_fault_screen.dart';
+export 'home/compound_parking/components/act_fault_screen.dart';
+export 'home/compound_parking/components/summary_fault_screen.dart';

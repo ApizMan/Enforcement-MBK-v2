@@ -11,3 +11,4 @@ export 'officer_model/offence_act_model.dart';
 export 'officer_model/offence_section_model.dart';
 export 'officer_model/offence_area_model.dart';
 export 'officer_model/offence_location_model.dart';
+export 'officer_model/officer_compound_model.dart';

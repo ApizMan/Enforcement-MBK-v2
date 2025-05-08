@@ -43,5 +43,16 @@
   "legalProvisions": "Peruntukan Undang-Undang",
   "sectionOrOrderOrMethod": "Seksyen/Perintah/Kaedah",
   "fault": "Kesalahan",
-  "zone": "Zon"
+  "zone": "Zon",
+  "location": "Lokasi",
+  "placement": "Tempat/Jalan",
+  "locationDetail": "Butiran Lokasi",
+  "squarePoleNumber": "Nombor Petak",
+  "vehicleClamping": "Kenderaan Dikapit",
+  "notes": "Nota",
+  "vehicleDetails": "Butiran Kenderaan",
+  "vehicleNumber": "Nombor Kenderaan",
+  "images": "Gambar",
+  "faultDetail": "Butiran Kesalahan",
+  "dateAndTime": "Tarikh & Masa"
 }

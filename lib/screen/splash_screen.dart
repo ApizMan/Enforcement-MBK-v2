@@ -17,19 +17,21 @@ class _SplashScreenState extends State<SplashScreen> {
   int activeStepper = 1;
   bool _isInit = false;
   late String handHeldId;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _initialize();
-  }
+  late OffenceDataModel data;
 
   @override
   void initState() {
-    handHeldId = "";
     super.initState();
-    _getUserData();
-    requestPermissions();
+    _startInitialization();
+  }
+
+  Future<void> _startInitialization() async {
+    data = await fetchOffenceAreasList(); // ✅ Fetch this first
+
+    await _getUserData(); // ✅ Then get user data
+    await requestPermissions(); // ✅ Then request permissions
+
+    _initialize(); // ✅ Then run initialize logic
   }
 
   Future<void> requestPermissions() async {
@@ -45,8 +47,6 @@ class _SplashScreenState extends State<SplashScreen> {
     if (_isInit) return;
 
     await Future.delayed(const Duration(seconds: 2));
-
-    final OffenceDataModel data = await fetchOffenceAreasList();
 
     final userLogin = await SharedPreferencesHelper.getLoginCredential();
 
@@ -77,6 +77,14 @@ class _SplashScreenState extends State<SplashScreen> {
             'userModel': data.users,
             'unitModel': data.units,
             'handHeldId': handHeldId,
+            'vehicleTypeModel': data.vehicleTypeModel,
+            'vehicleMakesModel': data.vehicleMakesModel,
+            'vehicleModelsModel': data.vehicleModelsModel,
+            'vehicleColorModel': data.vehicleColorModel,
+            'offenceActModel': data.offenceActModel,
+            'offenceSectionModel': data.offenceSectionModel,
+            'offenceAreaModel': data.offenceAreaModel,
+            'offenceLocationModel': data.offenceLocationModel,
           },
         );
       }

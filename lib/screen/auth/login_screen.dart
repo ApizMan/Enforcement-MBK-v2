@@ -23,9 +23,23 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   LoginFormBloc? formBloc;
   bool _isInitialized = false;
-  List<UserModel> userModel = []; // Initialize this
-  List<OfficerUnitModel> unitModel = []; // Initialize this
-  String handHeldId = "";
+  List<UserModel> userModel = [];
+  List<OfficerUnitModel> unitModel = [];
+  late String handHeldId;
+  List<VehicleTypeModel> vehicleTypeModel = [];
+  List<VehicleBrandModel> vehicleMakesModel = [];
+  List<VehicleModelsModel> vehicleModelsModel = [];
+  List<VehicleColorModel> vehicleColorModel = [];
+  List<OffenceActModel> offenceActModel = [];
+  List<OffenceSectionModel> offenceSectionModel = [];
+  List<OffenceAreaModel> offenceAreaModel = [];
+  List<OffenceLocationModel> offenceLocationModel = [];
+
+  @override
+  void initState() {
+    handHeldId = "";
+    super.initState();
+  }
 
   @override
   void didChangeDependencies() {
@@ -38,6 +52,21 @@ class _LoginScreenState extends State<LoginScreen> {
         userModel = arguments['userModel'] as List<UserModel>;
         unitModel = arguments['unitModel'] as List<OfficerUnitModel>;
         handHeldId = arguments['handHeldId'] as String;
+        vehicleTypeModel =
+            arguments['vehicleTypeModel'] as List<VehicleTypeModel>;
+        vehicleMakesModel =
+            arguments['vehicleMakesModel'] as List<VehicleBrandModel>;
+        vehicleModelsModel =
+            arguments['vehicleModelsModel'] as List<VehicleModelsModel>;
+        vehicleColorModel =
+            arguments['vehicleColorModel'] as List<VehicleColorModel>;
+        offenceActModel = arguments['offenceActModel'] as List<OffenceActModel>;
+        offenceSectionModel =
+            arguments['offenceSectionModel'] as List<OffenceSectionModel>;
+        offenceAreaModel =
+            arguments['offenceAreaModel'] as List<OffenceAreaModel>;
+        offenceLocationModel =
+            arguments['offenceLocationModel'] as List<OffenceLocationModel>;
       }
       _isInitialized = true;
     }
@@ -79,6 +108,19 @@ class _LoginScreenState extends State<LoginScreen> {
                             Navigator.popAndPushNamed(
                               context,
                               RouteManager.homeScreen,
+                              arguments: {
+                                'userModel': userModel,
+                                'unitModel': unitModel,
+                                'handHeldId': handHeldId,
+                                'vehicleTypeModel': vehicleTypeModel,
+                                'vehicleMakesModel': vehicleMakesModel,
+                                'vehicleModelsModel': vehicleModelsModel,
+                                'vehicleColorModel': vehicleColorModel,
+                                'offenceActModel': offenceActModel,
+                                'offenceSectionModel': offenceSectionModel,
+                                'offenceAreaModel': offenceAreaModel,
+                                'offenceLocationModel': offenceLocationModel,
+                              },
                             );
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text(state.successResponse!)),

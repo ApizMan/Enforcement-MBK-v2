@@ -43,5 +43,16 @@
   "legalProvisions": "Legal Provisions",
   "sectionOrOrderOrMethod": "Section/Order/Method",
   "fault": "Fault",
-  "zone": "Zone"
+  "zone": "Zone",
+  "location": "Location",
+  "placement": "Place/Road",
+  "locationDetail": "Location Detail",
+  "squarePoleNumber": "Square Pole Number",
+  "vehicleClamping": "Vehicle Clamping",
+  "notes": "Notes",
+  "vehicleDetails": "Vehicle Details",
+  "vehicleNumber": "Vehicle Number",
+  "images": "Images",
+  "faultDetail": "Fault Detail",
+  "dateAndTime": "Date & Time"
 }

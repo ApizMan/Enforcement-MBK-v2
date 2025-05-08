@@ -33,6 +33,10 @@ class _HomeScreenState extends State<HomeScreen> {
   List<OffenceAreaModel> offenceAreaModel = [];
   List<OffenceLocationModel> offenceLocationModel = [];
 
+  // FormBloc
+  VehicleValidationFormBloc? vehicleValidationFormBloc;
+  CompoundParkingFormBloc? compoundParkingFormBloc;
+
   @override
   void initState() {
     handHeldId = "";
@@ -100,6 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     offenceSectionModel: offenceSectionModel,
                     offenceAreaModel: offenceAreaModel,
                     offenceLocationModel: offenceLocationModel,
+                    vehicleValidationFormBloc: vehicleValidationFormBloc!,
                   ),
             ),
             BlocProvider<CompoundAmFormBloc>(
@@ -109,11 +114,11 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Builder(
             builder: (context) {
               // Validation Plate Number
-              final vehicleValidationFormBloc =
+              vehicleValidationFormBloc =
                   BlocProvider.of<VehicleValidationFormBloc>(context);
 
               // Finalize
-              final compoundParkingFormBloc =
+              compoundParkingFormBloc =
                   BlocProvider.of<CompoundParkingFormBloc>(context);
               final compoundAmFormBloc = BlocProvider.of<CompoundAmFormBloc>(
                 context,
@@ -190,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                     child: Scaffold(
-                      backgroundColor: kBackgroundColor,
+                      backgroundColor: const Color.fromRGBO(249, 246, 246, 1),
                       appBar: HeaderLayout(
                         bottomSize:
                             isCompoundParking
