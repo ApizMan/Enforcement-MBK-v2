@@ -97,4 +97,30 @@ class SharedPreferencesHelper {
 
     return token;
   }
+
+  static Future<int> getNoticeSerialNumber() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(serialNumberKey) ?? 1;
+  }
+
+  static Future<void> incrementNoticeSerialNumber() async {
+    final prefs = await SharedPreferences.getInstance();
+    final current = prefs.getInt(serialNumberKey) ?? 1;
+    await prefs.setInt(serialNumberKey, current + 1);
+  }
+
+  static Future<void> setCapturedImagePaths(List<String?> paths) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      captureImageCompoundKey,
+      paths.map((e) => e ?? '').toList(),
+    );
+  }
+
+  static Future<List<String?>> getCapturedImagePaths() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> list = prefs.getStringList(captureImageCompoundKey) ?? [];
+    return list.map((e) => e.isEmpty ? null : e).toList()
+      ..addAll(List.filled(4 - list.length, null));
+  }
 }

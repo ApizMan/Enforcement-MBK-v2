@@ -72,6 +72,7 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
   );
 
   final notes = TextFieldBloc();
+  final dateTime = TextFieldBloc();
 
   static final VehicleBrandModel otherMakeItem = VehicleBrandModel(
     id: '__other_make__',
@@ -115,10 +116,9 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
         showOtherBrand.updateValue(selectedMake.id == '__other_make__');
 
         if (selectedMake.id != '__other_make__') {
-          final filteredModels =
-              vehicleModelsModel
-                  .where((type) => type.makeId == selectedMake.id)
-                  .toList();
+          final filteredModels = vehicleModelsModel
+              .where((type) => type.makeId == selectedMake.id)
+              .toList();
           model.updateItems([...filteredModels, otherTypeItem]);
         } else {
           model.updateItems([]);
@@ -134,9 +134,11 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
 
       if (isOtherBrandFilled) {
         brand.updateValue(otherMakeItem);
+
+        // Always include 'Lain-Lain' for otherBrand
         model.updateItems([otherTypeItem]);
-        model.updateValue(null);
-        showOtherModel.updateValue(false);
+        model.updateValue(otherTypeItem); // Directly select 'Lain-Lain'
+        showOtherModel.updateValue(true);
       } else {
         model.updateItems([]);
         model.updateValue(null);
@@ -157,10 +159,9 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       final selectedAct = value.value;
 
       if (selectedAct != null) {
-        final filteredSections =
-            offenceSectionModel
-                .where((section) => section.actId == selectedAct.id)
-                .toList();
+        final filteredSections = offenceSectionModel
+            .where((section) => section.actId == selectedAct.id)
+            .toList();
         section.updateItems(filteredSections);
       } else {
         section.updateItems([]);
@@ -182,10 +183,9 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       final selectedArea = value.value;
 
       if (selectedArea != null) {
-        final filteredLocations =
-            offenceLocationModel
-                .where((location) => location.areaID == selectedArea.id)
-                .toList();
+        final filteredLocations = offenceLocationModel
+            .where((location) => location.areaID == selectedArea.id)
+            .toList();
         placement.updateItems([...filteredLocations, otherPlacementItem]);
       } else {
         placement.updateItems([]);
@@ -238,6 +238,9 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
         squarePoleNo,
         vehicleClamping,
         notes,
+
+        // Third Page
+        dateTime,
       ],
     );
   }
@@ -248,6 +251,9 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       final officerData = await SharedPreferencesHelper.getLoginCredential();
       final officerMobile = await SharedPreferencesHelper.getHandheldId();
 
+      final serial = await SharedPreferencesHelper.getNoticeSerialNumber();
+      final paddedSerial = serial.toString().padLeft(5, '0');
+
       final compoundModel = OfficerCompoundModel();
 
       compoundModel.officerID = officerData['name'];
@@ -257,6 +263,31 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       compoundModel.vehicleNo = vehicleValidationFormBloc.plateNumber.value;
       compoundModel.roadTaxNo = taxNumber.value;
       compoundModel.vehicleType = type.value!.description;
+      compoundModel.vehicleColor = color.value!.description;
+      compoundModel.squarePoleNo = squarePoleNo.value;
+      compoundModel.noticeNo = '${officerMobile}25$paddedSerial';
+
+      if (brand.value != null && model.value != null) {
+        final isOtherBrand = brand.value!.id == '__other_make__';
+        final isOtherModel = model.value!.id == '__other_model__';
+
+        final otherBrandText = otherBrand.value.trim();
+        final otherModelText = otherModel.value.trim();
+
+        if (isOtherBrand && isOtherModel) {
+          compoundModel.vehicleMakeModel =
+              'Lain-Lain - $otherBrandText - $otherModelText';
+        } else if (isOtherBrand) {
+          compoundModel.vehicleMakeModel =
+              'Lain-Lain - $otherBrandText - ${model.value!.description}';
+        } else if (isOtherModel) {
+          compoundModel.vehicleMakeModel =
+              '${brand.value!.description} - Lain-Lain - $otherModelText';
+        } else {
+          compoundModel.vehicleMakeModel =
+              '${brand.value!.description} - ${model.value!.description}';
+        }
+      }
 
       emitSuccess();
     } catch (e) {

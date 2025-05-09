@@ -19,7 +19,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.7.0
+  sdk: ">=3.2.2 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -35,7 +35,9 @@ dependencies:
   intl: ^0.19.0
   flutter_blue_plus: ^1.34.4
   permission_handler: ^11.3.0
-  flutter_bluetooth_serial: ^0.4.0
+  flutter_bluetooth_serial:
+    path: plugins/flutter_bluetooth_serial
+
   zsdk: ^4.0.0
   flutter_form_bloc:
     git:
@@ -54,6 +56,10 @@ dependencies:
   crypto: ^3.0.3
   sidebarx: ^0.17.1
   flutter_scale_tap: ^1.0.5
+  image_picker: ^1.1.2
+  path_provider: ^2.1.5
+  path: ^1.9.1
+  image_gallery_saver_plus: ^4.0.1
 
 dev_dependencies:
   flutter_test:

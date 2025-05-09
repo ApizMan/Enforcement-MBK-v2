@@ -54,5 +54,8 @@
   "vehicleNumber": "Vehicle Number",
   "images": "Images",
   "faultDetail": "Fault Detail",
-  "dateAndTime": "Date & Time"
+  "dateAndTime": "Date & Time",
+  "ok": "OK",
+  "capture": "Capture",
+  "print": "Print"
 }

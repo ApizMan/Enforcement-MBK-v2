@@ -12,12 +12,14 @@ class HeaderLayout extends StatelessWidget implements PreferredSizeWidget {
   final CompoundAmFormBloc? compoundAmFormBloc;
   final String title;
   final bool showTabBar;
+  final bool hideActionButton;
   final double bottomSize;
   const HeaderLayout({
     super.key,
     required this.title,
     required this.bottomSize,
     this.showTabBar = false,
+    this.hideActionButton = false,
     this.compoundAmFormBloc,
     this.compoundParkingFormBloc,
   });
@@ -39,48 +41,55 @@ class HeaderLayout extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       centerTitle: true,
-      actions: [
-        PopupMenuButton(
-          onSelected: (value) {},
-          itemBuilder:
-              (context) => [
-                PopupMenuItem(
-                  child: Row(
-                    children: [
-                      Icon(Icons.edit_document, color: kBlack),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 10.0),
-                        child: Text(
-                          AppLocalizations.of(context)!.compoundParking,
+      actions:
+          hideActionButton
+              ? null
+              : [
+                PopupMenuButton(
+                  onSelected: (value) {},
+                  itemBuilder:
+                      (context) => [
+                        PopupMenuItem(
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit_document, color: kBlack),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 10.0),
+                                child: Text(
+                                  AppLocalizations.of(context)!.compoundParking,
+                                ),
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            Future.delayed(Duration.zero, () {
+                              controller.setScreen(
+                                RouteManager.compoundParkingBody,
+                              );
+                            });
+                          },
                         ),
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    Future.delayed(Duration.zero, () {
-                      controller.setScreen(RouteManager.compoundParkingBody);
-                    });
-                  },
-                ),
-                PopupMenuItem(
-                  child: Row(
-                    children: [
-                      Icon(Icons.castle_rounded, color: kBlack),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 10.0),
-                        child: Text(AppLocalizations.of(context)!.compoundAm),
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    Future.delayed(Duration.zero, () {
-                      controller.setScreen(RouteManager.compoundAmBody);
-                    });
-                  },
+                        PopupMenuItem(
+                          child: Row(
+                            children: [
+                              Icon(Icons.castle_rounded, color: kBlack),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 10.0),
+                                child: Text(
+                                  AppLocalizations.of(context)!.compoundAm,
+                                ),
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            Future.delayed(Duration.zero, () {
+                              controller.setScreen(RouteManager.compoundAmBody);
+                            });
+                          },
+                        ),
+                      ],
                 ),
               ],
-        ),
-      ],
       bottom:
           showTabBar
               ? PreferredSize(

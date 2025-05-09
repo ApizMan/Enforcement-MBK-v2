@@ -19,284 +19,286 @@ class VehicleFaultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              // PLate Number field
-              Expanded(
-                child: TextFieldBlocBuilder(
-                  textFieldBloc: vehicleValidationFormBloc!.plateNumber,
-                  textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(
-                    label: Text(AppLocalizations.of(context)!.plateNumber),
-                    prefixIcon: const Icon(
-                      Icons.abc_rounded,
-                      color: accentCanvasColor,
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                // PLate Number field
+                Expanded(
+                  child: TextFieldBlocBuilder(
+                    textFieldBloc: vehicleValidationFormBloc!.plateNumber,
+                    textInputAction: TextInputAction.done,
+                    decoration: InputDecoration(
+                      label: Text(AppLocalizations.of(context)!.plateNumber),
+                      prefixIcon: const Icon(
+                        Icons.abc_rounded,
+                        color: accentCanvasColor,
+                      ),
+                      hintText:
+                          '${AppLocalizations.of(context)!.enter} ${AppLocalizations.of(context)!.plateNumber}',
+                      hintStyle: const TextStyle(color: Colors.black26),
+                      border: OutlineInputBorder(
+                        borderSide: const BorderSide(color: kBlack),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: kBlack),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.8),
                     ),
-                    hintText:
-                        '${AppLocalizations.of(context)!.enter} ${AppLocalizations.of(context)!.plateNumber}',
-                    hintStyle: const TextStyle(color: Colors.black26),
-                    border: OutlineInputBorder(
-                      borderSide: const BorderSide(color: kBlack),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: kBlack),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.8),
                   ),
                 ),
-              ),
-              // Verify button
-              spaceHorizontal(width: 10.0),
-              PrimaryButton(
-                buttonWidth: 0.3,
-                borderRadius: 10.0,
-                color: accentCanvasColor,
-                onPressed: () => vehicleValidationFormBloc!.submit(),
-                label: Text(
-                  AppLocalizations.of(context)!.verify,
-                  style: textStyleNormal(color: kWhite),
-                ),
-              ),
-            ],
-          ),
-          TextFieldBlocBuilder(
-            textFieldBloc: compoundParkingFormBloc!.taxNumber,
-            textInputAction: TextInputAction.done,
-            decoration: InputDecoration(
-              label: Text(AppLocalizations.of(context)!.taxRoadNumber),
-              prefixIcon: const Icon(
-                Icons.flag_circle,
-                color: accentCanvasColor,
-              ),
-              hintText:
-                  '${AppLocalizations.of(context)!.enter} ${AppLocalizations.of(context)!.taxRoadNumber}',
-              hintStyle: const TextStyle(color: Colors.black26),
-              border: OutlineInputBorder(
-                borderSide: const BorderSide(color: kBlack),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: kBlack),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              filled: true,
-              fillColor: Colors.white.withOpacity(0.8),
-            ),
-          ),
-
-          DropdownFieldBlocBuilder<VehicleTypeModel?>(
-            showEmptyItem: false,
-            selectFieldBloc: compoundParkingFormBloc!.type,
-            decoration: InputDecoration(
-              label: Text(AppLocalizations.of(context)!.bodyType),
-              prefixIcon: const Icon(
-                Icons.car_rental_rounded,
-                color: accentCanvasColor,
-              ),
-              border: OutlineInputBorder(
-                borderSide: const BorderSide(color: kBlack),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: kBlack),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              filled: true,
-              fillColor: Colors.white.withOpacity(0.8),
-            ),
-            itemBuilder: (context, value) {
-              return FieldItem(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Text(value?.description ?? 'Unknown'),
-                ),
-              );
-            },
-          ),
-
-          DropdownFieldBlocBuilder<VehicleBrandModel?>(
-            showEmptyItem: false,
-            selectFieldBloc: compoundParkingFormBloc!.brand,
-            decoration: InputDecoration(
-              label: Text(AppLocalizations.of(context)!.brands),
-              prefixIcon: const Icon(
-                Icons.car_repair,
-                color: accentCanvasColor,
-              ),
-              border: OutlineInputBorder(
-                borderSide: const BorderSide(color: kBlack),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: kBlack),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              filled: true,
-              fillColor: Colors.white.withOpacity(0.8),
-            ),
-            itemBuilder: (context, value) {
-              return FieldItem(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Text(value?.description ?? 'Unknown'),
-                ),
-              );
-            },
-          ),
-
-          /// Visibility for "Lain-Lain" Make Text Field
-          BlocBuilder<BooleanFieldBloc, BooleanFieldBlocState>(
-            bloc: compoundParkingFormBloc!.showOtherBrand,
-            builder: (context, state) {
-              return Visibility(
-                visible: state.value,
-                child: TextFieldBlocBuilder(
-                  textFieldBloc: compoundParkingFormBloc!.otherBrand,
-                  decoration: InputDecoration(
-                    label: Text(
-                      '${AppLocalizations.of(context)!.others} ${AppLocalizations.of(context)!.brands}',
-                    ),
-                    prefixIcon: const Icon(
-                      Icons.add_circle_sharp,
-                      color: accentCanvasColor,
-                    ),
-                    hintText:
-                        '${AppLocalizations.of(context)!.enter} ${AppLocalizations.of(context)!.others} ${AppLocalizations.of(context)!.bodyType}',
-                    hintStyle: const TextStyle(color: Colors.black26),
-                    border: OutlineInputBorder(
-                      borderSide: const BorderSide(color: kBlack),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: kBlack),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.8),
+                // Verify button
+                spaceHorizontal(width: 10.0),
+                PrimaryButton(
+                  buttonWidth: 0.3,
+                  borderRadius: 10.0,
+                  color: accentCanvasColor,
+                  onPressed: () => vehicleValidationFormBloc!.submit(),
+                  label: Text(
+                    AppLocalizations.of(context)!.verify,
+                    style: textStyleNormal(color: kWhite, fontSize: 10),
                   ),
                 ),
-              );
-            },
-          ),
-
-          DropdownFieldBlocBuilder<VehicleModelsModel?>(
-            showEmptyItem: false,
-            selectFieldBloc: compoundParkingFormBloc!.model,
-            decoration: InputDecoration(
-              label: Text(AppLocalizations.of(context)!.model),
-              prefixIcon: const Icon(
-                Icons.car_crash_sharp,
-                color: accentCanvasColor,
-              ),
-              border: OutlineInputBorder(
-                borderSide: const BorderSide(color: kBlack),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: kBlack),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              filled: true,
-              fillColor: Colors.white.withOpacity(0.8),
+              ],
             ),
-            itemBuilder: (context, value) {
-              return FieldItem(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Text(value?.description ?? 'Unknown'),
+            TextFieldBlocBuilder(
+              textFieldBloc: compoundParkingFormBloc!.taxNumber,
+              textInputAction: TextInputAction.done,
+              decoration: InputDecoration(
+                label: Text(AppLocalizations.of(context)!.taxRoadNumber),
+                prefixIcon: const Icon(
+                  Icons.flag_circle,
+                  color: accentCanvasColor,
                 ),
-              );
-            },
-          ),
+                hintText:
+                    '${AppLocalizations.of(context)!.enter} ${AppLocalizations.of(context)!.taxRoadNumber}',
+                hintStyle: const TextStyle(color: Colors.black26),
+                border: OutlineInputBorder(
+                  borderSide: const BorderSide(color: kBlack),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(color: kBlack),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.8),
+              ),
+            ),
 
-          /// Visibility for "Lain-Lain" Model Text Field
-          BlocBuilder<BooleanFieldBloc, BooleanFieldBlocState>(
-            bloc: compoundParkingFormBloc!.showOtherModel,
-            builder: (context, state) {
-              return Visibility(
-                visible: state.value,
-                child: TextFieldBlocBuilder(
-                  textFieldBloc: compoundParkingFormBloc!.otherModel,
-                  decoration: InputDecoration(
-                    label: Text(
-                      '${AppLocalizations.of(context)!.others} ${AppLocalizations.of(context)!.model}',
-                    ),
-                    prefixIcon: const Icon(
-                      Icons.add_circle_sharp,
-                      color: accentCanvasColor,
-                    ),
-                    hintText:
-                        '${AppLocalizations.of(context)!.enter} ${AppLocalizations.of(context)!.others} ${AppLocalizations.of(context)!.model}',
-                    hintStyle: const TextStyle(color: Colors.black26),
-                    border: OutlineInputBorder(
-                      borderSide: const BorderSide(color: kBlack),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: kBlack),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.8),
+            DropdownFieldBlocBuilder<VehicleTypeModel?>(
+              showEmptyItem: false,
+              selectFieldBloc: compoundParkingFormBloc!.type,
+              decoration: InputDecoration(
+                label: Text(AppLocalizations.of(context)!.bodyType),
+                prefixIcon: const Icon(
+                  Icons.car_rental_rounded,
+                  color: accentCanvasColor,
+                ),
+                border: OutlineInputBorder(
+                  borderSide: const BorderSide(color: kBlack),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(color: kBlack),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.8),
+              ),
+              itemBuilder: (context, value) {
+                return FieldItem(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: Text(value?.description ?? 'Unknown'),
                   ),
-                ),
-              );
-            },
-          ),
-
-          DropdownFieldBlocBuilder<VehicleColorModel?>(
-            showEmptyItem: false,
-            selectFieldBloc: compoundParkingFormBloc!.color,
-            decoration: InputDecoration(
-              label: Text(AppLocalizations.of(context)!.color),
-              prefixIcon: const Icon(
-                Icons.color_lens,
-                color: accentCanvasColor,
-              ),
-              border: OutlineInputBorder(
-                borderSide: const BorderSide(color: kBlack),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: kBlack),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              filled: true,
-              fillColor: Colors.white.withOpacity(0.8),
+                );
+              },
             ),
-            itemBuilder: (context, value) {
-              return FieldItem(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Text(value?.description ?? 'Unknown'),
+
+            DropdownFieldBlocBuilder<VehicleBrandModel?>(
+              showEmptyItem: false,
+              selectFieldBloc: compoundParkingFormBloc!.brand,
+              decoration: InputDecoration(
+                label: Text(AppLocalizations.of(context)!.brands),
+                prefixIcon: const Icon(
+                  Icons.car_repair,
+                  color: accentCanvasColor,
                 ),
-              );
-            },
-          ),
-
-          spaceVertical(height: 20.0),
-
-          PrimaryButton(
-            buttonWidth: 1,
-            borderRadius: 10.0,
-            color: accentCanvasColor,
-            onPressed:
-                () => Navigator.pushNamed(context, RouteManager.cameraScreen),
-            label: Text(
-              AppLocalizations.of(context)!.camera,
-              style: textStyleNormal(color: kWhite),
+                border: OutlineInputBorder(
+                  borderSide: const BorderSide(color: kBlack),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(color: kBlack),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.8),
+              ),
+              itemBuilder: (context, value) {
+                return FieldItem(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: Text(value?.description ?? 'Unknown'),
+                  ),
+                );
+              },
             ),
-          ),
-        ],
+
+            /// Visibility for "Lain-Lain" Make Text Field
+            BlocBuilder<BooleanFieldBloc, BooleanFieldBlocState>(
+              bloc: compoundParkingFormBloc!.showOtherBrand,
+              builder: (context, state) {
+                return Visibility(
+                  visible: state.value,
+                  child: TextFieldBlocBuilder(
+                    textFieldBloc: compoundParkingFormBloc!.otherBrand,
+                    decoration: InputDecoration(
+                      label: Text(
+                        '${AppLocalizations.of(context)!.others} ${AppLocalizations.of(context)!.brands}',
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.add_circle_sharp,
+                        color: accentCanvasColor,
+                      ),
+                      hintText:
+                          '${AppLocalizations.of(context)!.enter} ${AppLocalizations.of(context)!.others} ${AppLocalizations.of(context)!.brands}',
+                      hintStyle: const TextStyle(color: Colors.black26),
+                      border: OutlineInputBorder(
+                        borderSide: const BorderSide(color: kBlack),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: kBlack),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            DropdownFieldBlocBuilder<VehicleModelsModel?>(
+              showEmptyItem: false,
+              selectFieldBloc: compoundParkingFormBloc!.model,
+              decoration: InputDecoration(
+                label: Text(AppLocalizations.of(context)!.model),
+                prefixIcon: const Icon(
+                  Icons.car_crash_sharp,
+                  color: accentCanvasColor,
+                ),
+                border: OutlineInputBorder(
+                  borderSide: const BorderSide(color: kBlack),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(color: kBlack),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.8),
+              ),
+              itemBuilder: (context, value) {
+                return FieldItem(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: Text(value?.description ?? 'Unknown'),
+                  ),
+                );
+              },
+            ),
+
+            /// Visibility for "Lain-Lain" Model Text Field
+            BlocBuilder<BooleanFieldBloc, BooleanFieldBlocState>(
+              bloc: compoundParkingFormBloc!.showOtherModel,
+              builder: (context, state) {
+                return Visibility(
+                  visible: state.value,
+                  child: TextFieldBlocBuilder(
+                    textFieldBloc: compoundParkingFormBloc!.otherModel,
+                    decoration: InputDecoration(
+                      label: Text(
+                        '${AppLocalizations.of(context)!.others} ${AppLocalizations.of(context)!.model}',
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.add_circle_sharp,
+                        color: accentCanvasColor,
+                      ),
+                      hintText:
+                          '${AppLocalizations.of(context)!.enter} ${AppLocalizations.of(context)!.others} ${AppLocalizations.of(context)!.model}',
+                      hintStyle: const TextStyle(color: Colors.black26),
+                      border: OutlineInputBorder(
+                        borderSide: const BorderSide(color: kBlack),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: kBlack),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            DropdownFieldBlocBuilder<VehicleColorModel?>(
+              showEmptyItem: false,
+              selectFieldBloc: compoundParkingFormBloc!.color,
+              decoration: InputDecoration(
+                label: Text(AppLocalizations.of(context)!.color),
+                prefixIcon: const Icon(
+                  Icons.color_lens,
+                  color: accentCanvasColor,
+                ),
+                border: OutlineInputBorder(
+                  borderSide: const BorderSide(color: kBlack),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(color: kBlack),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.8),
+              ),
+              itemBuilder: (context, value) {
+                return FieldItem(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: Text(value?.description ?? 'Unknown'),
+                  ),
+                );
+              },
+            ),
+
+            spaceVertical(height: 20.0),
+
+            PrimaryButton(
+              buttonWidth: 1,
+              borderRadius: 10.0,
+              color: accentCanvasColor,
+              onPressed: () =>
+                  Navigator.pushNamed(context, RouteManager.cameraScreen),
+              label: Text(
+                AppLocalizations.of(context)!.camera,
+                style: textStyleNormal(color: kWhite),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

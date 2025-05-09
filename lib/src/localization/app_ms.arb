@@ -54,5 +54,8 @@
   "vehicleNumber": "Nombor Kenderaan",
   "images": "Gambar",
   "faultDetail": "Butiran Kesalahan",
-  "dateAndTime": "Tarikh & Masa"
+  "dateAndTime": "Tarikh & Masa",
+  "ok": "OK",
+  "capture": "Tangkap",
+  "print": "Cetak"
 }

@@ -40,6 +40,8 @@ class _SplashScreenState extends State<SplashScreen> {
       Permission.bluetoothConnect,
       Permission.bluetoothScan,
       Permission.locationWhenInUse,
+      Permission.photos,
+      Permission.storage,
     ].request();
   }
 

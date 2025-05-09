@@ -40,6 +40,8 @@ const String isPrinterNewKey = 'isPrinterNewKey';
 const String printerMACKey = 'printerMACKey';
 const String isMACSaveKey = 'isMACSaveKey';
 const String tokenTMKey = 'tokenTMKey';
+const String serialNumberKey = 'serialNumberKey';
+const String captureImageCompoundKey = 'captureImageCompoundKey';
 
 final divider = Divider(color: kWhite.withOpacity(0.3), height: 1);
 

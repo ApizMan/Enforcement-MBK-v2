@@ -1,10 +1,13 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:eo_apk_mbk_v2/form_blocs/form_bloc.dart';
 import 'package:eo_apk_mbk_v2/helpers/constant.dart';
+import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
 import 'package:eo_apk_mbk_v2/helpers/theme.dart';
+import 'package:eo_apk_mbk_v2/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -37,11 +40,14 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
     _currentTime = _formatDateTime(DateTime.now());
 
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
+      final now = DateTime.now();
       setState(() {
-        _currentTime = _formatDateTime(DateTime.now());
+        _currentTime = _formatDateTime(now);
       });
-    });
 
+      widget.compoundParkingFormBloc?.dateTime
+          .updateValue(now.toIso8601String());
+    });
     _startAutoScroll();
   }
 
@@ -79,6 +85,21 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
           Expanded(child: _vehicleDetails(context)),
           spaceVertical(height: 20.0),
           Expanded(child: _faultDetails(context)),
+          spaceVertical(height: 20.0),
+          PrimaryButton(
+            buttonWidth: 1,
+            borderRadius: 10.0,
+            color: accentCanvasColor,
+            onPressed: () {
+              setState(() {
+                widget.compoundParkingFormBloc?.submit();
+              });
+            },
+            label: Text(
+              AppLocalizations.of(context)!.print,
+              style: textStyleNormal(color: kWhite),
+            ),
+          ),
         ],
       ),
     );
@@ -109,18 +130,12 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
                     AppLocalizations.of(context)!.model,
                     widget.compoundParkingFormBloc?.showOtherBrand.value == true
                         ? '${widget.compoundParkingFormBloc?.brand.value?.description} - ${widget.compoundParkingFormBloc?.otherBrand.value}'
-                        : widget
-                                .compoundParkingFormBloc
-                                ?.brand
-                                .value
+                        : widget.compoundParkingFormBloc?.brand.value
                                 ?.description ??
                             '',
                     widget.compoundParkingFormBloc?.showOtherModel.value == true
                         ? '${widget.compoundParkingFormBloc?.model.value?.description} - ${widget.compoundParkingFormBloc?.otherModel.value}'
-                        : widget
-                                .compoundParkingFormBloc
-                                ?.model
-                                .value
+                        : widget.compoundParkingFormBloc?.model.value
                                 ?.description ??
                             '',
                   ),
@@ -141,6 +156,8 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  spaceVertical(height: 10.0),
+                  _imageRowPreview(),
                 ],
               ),
             ),
@@ -180,19 +197,13 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
                     ),
                     _labelAndValue(
                       AppLocalizations.of(context)!.legalProvisions,
-                      widget
-                              .compoundParkingFormBloc
-                              ?.actLaw
-                              .value
+                      widget.compoundParkingFormBloc?.actLaw.value
                               ?.description ??
                           '',
                     ),
                     _labelAndValue(
                       AppLocalizations.of(context)!.sectionOrOrderOrMethod,
-                      widget
-                              .compoundParkingFormBloc
-                              ?.section
-                              .value
+                      widget.compoundParkingFormBloc?.section.value
                               ?.description ??
                           '',
                     ),
@@ -203,16 +214,11 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
                     ),
                     _labelAndValue(
                       AppLocalizations.of(context)!.placement,
-                      widget
-                                  .compoundParkingFormBloc
-                                  ?.showOtherPlacement
+                      widget.compoundParkingFormBloc?.showOtherPlacement
                                   .value ==
                               true
                           ? '${widget.compoundParkingFormBloc?.placement.value?.description} - ${widget.compoundParkingFormBloc?.otherPlacement.value}'
-                          : widget
-                                  .compoundParkingFormBloc
-                                  ?.placement
-                                  .value
+                          : widget.compoundParkingFormBloc?.placement.value
                                   ?.description ??
                               '',
                     ),
@@ -285,7 +291,7 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
                 label1,
                 style: textStyleNormal(
                   fontWeight: FontWeight.bold,
-                  color: accentCanvasColor,
+                  color: kBlack,
                 ),
               ),
             ),
@@ -294,7 +300,7 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
                 label2,
                 style: textStyleNormal(
                   fontWeight: FontWeight.bold,
-                  color: accentCanvasColor,
+                  color: kBlack,
                 ),
               ),
             ),
@@ -328,7 +334,7 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
         Text(
           label,
           style: textStyleNormal(
-            color: accentCanvasColor,
+            color: kBlack,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -336,6 +342,38 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
         Text(value, style: textStyleNormal(color: accentCanvasColor)),
         spaceVertical(height: 10.0),
       ],
+    );
+  }
+
+  Widget _imageRowPreview() {
+    return FutureBuilder<List<String?>>(
+      future: SharedPreferencesHelper.getCapturedImagePaths(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const SizedBox.shrink();
+        }
+
+        final paths = snapshot.data!;
+        final images = paths.where((path) => path != null).map((path) {
+          return Padding(
+            padding: const EdgeInsets.only(right: 10.0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(
+                File(path!),
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+              ),
+            ),
+          );
+        }).toList();
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(children: images),
+        );
+      },
     );
   }
 }
