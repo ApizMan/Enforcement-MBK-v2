@@ -70,6 +70,7 @@ class _SettingScreenState extends State<SettingScreen> {
     return Scaffold(
       backgroundColor: kBackgroundColor,
       appBar: HeaderLayout(
+        hideActionButton: true,
         bottomSize: noBottomAppBarSize,
         title: AppLocalizations.of(context)!.setting,
       ),

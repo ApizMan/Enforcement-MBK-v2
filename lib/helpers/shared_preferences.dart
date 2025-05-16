@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:eo_apk_mbk_v2/helpers/constant.dart';
+import 'package:eo_apk_mbk_v2/models/models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPreferencesHelper {
@@ -100,13 +103,31 @@ class SharedPreferencesHelper {
 
   static Future<int> getNoticeSerialNumber() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(serialNumberKey) ?? 1;
+
+    // Get stored date, default to empty
+    final String? storedDate = prefs.getString(serialDateKey);
+    final String today = DateTime.now().toIso8601String().split('T').first;
+
+    // If new day, reset serial number
+    if (storedDate != today) {
+      await prefs.setInt(serialNumberKey, 0);
+      await prefs.setString(serialDateKey, today);
+      return 0;
+    }
+
+    // Return current serial number
+    return prefs.getInt(serialNumberKey) ?? 0;
   }
 
   static Future<void> incrementNoticeSerialNumber() async {
     final prefs = await SharedPreferences.getInstance();
-    final current = prefs.getInt(serialNumberKey) ?? 1;
+
+    final int current = prefs.getInt(serialNumberKey) ?? 0;
     await prefs.setInt(serialNumberKey, current + 1);
+
+    // Ensure the date is also up-to-date (optional safeguard)
+    final String today = DateTime.now().toIso8601String().split('T').first;
+    await prefs.setString(serialDateKey, today);
   }
 
   static Future<void> setCapturedImagePaths(List<String?> paths) async {
@@ -122,5 +143,49 @@ class SharedPreferencesHelper {
     List<String> list = prefs.getStringList(captureImageCompoundKey) ?? [];
     return list.map((e) => e.isEmpty ? null : e).toList()
       ..addAll(List.filled(4 - list.length, null));
+  }
+
+  static Future<void> clearCapturedImagePaths() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(captureImageCompoundKey);
+  }
+
+  static Future<void> btnCheckPush({required bool push}) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool(btnCheckPushKey, push);
+  }
+
+  static Future<bool> getCheckPush() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? push = prefs.getBool(btnCheckPushKey);
+
+    return push!;
+  }
+
+  // Save Form
+  static Future<void> saveOfficerCompoundModel(
+      OfficerCompoundModel model) async {
+    final prefs = await SharedPreferences.getInstance();
+    String jsonString = jsonEncode(model.toJson());
+    await prefs.setString(officerCompoundModelKey, jsonString);
+  }
+
+  // Get Form
+  static Future<OfficerCompoundModel?> getOfficerCompoundModel() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? jsonString = prefs.getString(officerCompoundModelKey);
+
+    if (jsonString != null && jsonString.isNotEmpty) {
+      Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+      return OfficerCompoundModel.fromJson(jsonMap);
+    }
+
+    return null;
+  }
+
+  // Clear Form
+  static Future<void> clearOfficerCompoundModel() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(officerCompoundModelKey);
   }
 }

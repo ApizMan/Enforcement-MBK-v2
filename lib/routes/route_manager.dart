@@ -1,3 +1,4 @@
+import 'package:eo_apk_mbk_v2/helpers/binding.dart';
 import 'package:eo_apk_mbk_v2/screen/screen.dart';
 import 'package:get/get.dart';
 
@@ -25,7 +26,12 @@ class RouteManager {
     GetPage(name: loginScreen, page: () => LoginScreen()),
 
     // Dashboard
-    GetPage(name: homeScreen, page: () => HomeScreen()),
+    GetPage(
+      name: homeScreen,
+      page: () => HomeScreen(),
+      binding:
+          HomeBinding(), // ✅ Inject HomeController before HomeScreen builds
+    ),
     GetPage(name: settingScreen, page: () => SettingScreen()),
     GetPage(name: compoundParkingScreen, page: () => CompoundParkingScreen()),
     GetPage(name: compoundAmScreen, page: () => CompoundAmScreen()),

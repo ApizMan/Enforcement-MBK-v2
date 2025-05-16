@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:eo_apk_mbk_v2/form_blocs/form_bloc.dart';
 import 'package:eo_apk_mbk_v2/helpers/constant.dart';
 import 'package:eo_apk_mbk_v2/helpers/theme.dart';
@@ -290,8 +292,11 @@ class VehicleFaultScreen extends StatelessWidget {
               buttonWidth: 1,
               borderRadius: 10.0,
               color: accentCanvasColor,
-              onPressed: () =>
-                  Navigator.pushNamed(context, RouteManager.cameraScreen),
+              onPressed: () => Navigator.pushNamed(
+                  context, RouteManager.cameraScreen,
+                  arguments: {
+                    'compoundParkingFormBloc': compoundParkingFormBloc,
+                  }),
               label: Text(
                 AppLocalizations.of(context)!.camera,
                 style: textStyleNormal(color: kWhite),

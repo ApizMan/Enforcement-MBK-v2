@@ -18,7 +18,7 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
   final VehicleValidationFormBloc vehicleValidationFormBloc;
 
   // First Page
-  final taxNumber = TextFieldBloc(validators: [InputValidator.required]);
+  final taxNumber = TextFieldBloc();
 
   final type = SelectFieldBloc<VehicleTypeModel, dynamic>(
     validators: [InputValidator.required],
@@ -73,6 +73,11 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
 
   final notes = TextFieldBloc();
   final dateTime = TextFieldBloc();
+
+  final imageName1 = TextFieldBloc();
+  final imageName2 = TextFieldBloc();
+  final imageName3 = TextFieldBloc();
+  final imageName4 = TextFieldBloc();
 
   static final VehicleBrandModel otherMakeItem = VehicleBrandModel(
     id: '__other_make__',
@@ -196,9 +201,12 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
 
     placement.stream.listen((value) {
       final selectedLocation = value.value;
-      showOtherPlacement.updateValue(
-        selectedLocation?.id == '__other_placement__',
-      );
+      final selectedArea = area.value;
+
+      final shouldShow =
+          selectedLocation?.id == '__other_placement__' && selectedArea != null;
+
+      showOtherPlacement.updateValue(shouldShow);
     });
 
     otherPlacement.stream.listen((value) {
@@ -241,6 +249,10 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
 
         // Third Page
         dateTime,
+        imageName1,
+        imageName2,
+        imageName3,
+        imageName4,
       ],
     );
   }
@@ -256,7 +268,7 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
 
       final compoundModel = OfficerCompoundModel();
 
-      compoundModel.officerID = officerData['name'];
+      compoundModel.officerId = officerData['name'];
       compoundModel.officerUnit = officerData['unit'];
       compoundModel.officerSaksi = officerData['witness'];
       compoundModel.handheldCode = officerMobile;
@@ -266,6 +278,38 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       compoundModel.vehicleColor = color.value!.description;
       compoundModel.squarePoleNo = squarePoleNo.value;
       compoundModel.noticeNo = '${officerMobile}25$paddedSerial';
+      compoundModel.offenceSectionCode = section.value!.id;
+      compoundModel.offenceDateString = dateTime.value;
+
+      compoundModel.offenceArea = area.value!.description;
+
+      compoundModel.imageName1 = imageName1.value;
+      compoundModel.imageName2 = imageName2.value;
+      compoundModel.imageName3 = imageName3.value;
+      compoundModel.imageName4 = imageName4.value;
+
+      compoundModel.notes = notes.value;
+
+      if (placement.value != null) {
+        final isOtherPlacement = placement.value!.id == '__other_placement__';
+        final otherPlacementText = otherPlacement.value.trim();
+
+        if (isOtherPlacement && otherPlacementText.isNotEmpty) {
+          compoundModel.offenceLocation = 'Lain-Lain - $otherPlacementText';
+        } else {
+          compoundModel.offenceLocation = placement.value!.description;
+        }
+      } else {
+        compoundModel.offenceLocation = null;
+      }
+
+      compoundModel.offenceLocationDetails = locationDetail.value;
+
+      if (vehicleClamping.value == 'Ya') {
+        compoundModel.isClamping = true;
+      } else {
+        compoundModel.isClamping = false;
+      }
 
       if (brand.value != null && model.value != null) {
         final isOtherBrand = brand.value!.id == '__other_make__';
@@ -288,6 +332,24 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
               '${brand.value!.description} - ${model.value!.description}';
         }
       }
+
+      // 🚨 Validate placement
+      if (placement.value == null) {
+        emitFailure(failureResponse: "Sila Pilih Nama Jalan.");
+        return;
+      }
+
+      // 🚨 If placement is 'Lain-Lain', validate otherPlacement
+      final isOtherPlacement = placement.value!.id == '__other_placement__';
+      final otherPlacementText = otherPlacement.value.trim();
+
+      if (isOtherPlacement && otherPlacementText.isEmpty) {
+        emitFailure(failureResponse: "Sila Pilih Nama Jalan.");
+        return;
+      }
+
+      // Save Form inside SharedPreferences
+      await SharedPreferencesHelper.saveOfficerCompoundModel(compoundModel);
 
       emitSuccess();
     } catch (e) {

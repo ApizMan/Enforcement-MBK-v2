@@ -28,10 +28,13 @@ class VehicleValidationFormBloc extends FormBloc<String, String> {
 
     final respondTM =
         await VehicleValidationResource.validateVehicleTrafficManagement(
-          prefix: 'verify-vehicle',
-          token: token,
-          body: jsonEncode({'plate_number': plateNumber.value}),
-        );
+      prefix: 'verify-vehicle',
+      token: token,
+      body: jsonEncode({'plate_number': plateNumber.value}),
+    );
+
+    // Button been pushed
+    await SharedPreferencesHelper.btnCheckPush(push: true);
 
     if (respondTM['success'] == true &&
         respondTM['data'] is List &&
@@ -44,12 +47,13 @@ class VehicleValidationFormBloc extends FormBloc<String, String> {
     } else {
       final respondEnYasin =
           await VehicleValidationResource.validateVehicleEnYasin(
-            prefix: 'verify-vehicle-en-yasin',
-            body: jsonEncode({'plate': plateNumber.value}),
-          );
+        prefix: 'verify-vehicle-en-yasin',
+        body: jsonEncode({'plate': plateNumber.value}),
+      );
 
       if (respondEnYasin is List && respondEnYasin.isNotEmpty) {
         final data = respondEnYasin.first;
+
         emitSuccess(
           successResponse:
               'Berbayar - ${data['plate']} (${data['enddate']} ${data['endtime']})',

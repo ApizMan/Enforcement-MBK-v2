@@ -9,6 +9,9 @@ const String trafficManagementUrl =
 const String enYasinUrl =
     'https://mycouncil.citycarpark.my/parking/ctcp/services-listerner_mbk.php';
 
+const String myEnfocementEnYasinUrl =
+    'http://myenforce.citycarpark.my/HandheldApi_MBK/HandheldService.svc/JSONService/';
+
 // Colors
 const Color kBlack = Colors.black;
 const Color kWhite = Colors.white;
@@ -40,8 +43,11 @@ const String isPrinterNewKey = 'isPrinterNewKey';
 const String printerMACKey = 'printerMACKey';
 const String isMACSaveKey = 'isMACSaveKey';
 const String tokenTMKey = 'tokenTMKey';
-const String serialNumberKey = 'serialNumberKey';
+const String serialNumberKey = 'notice_serial_number';
+const String serialDateKey = 'notice_serial_date';
 const String captureImageCompoundKey = 'captureImageCompoundKey';
+const String btnCheckPushKey = 'btnCheckPushKey';
+const String officerCompoundModelKey = 'officerCompoundModelKey';
 
 final divider = Divider(color: kWhite.withOpacity(0.3), height: 1);
 

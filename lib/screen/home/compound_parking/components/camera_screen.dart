@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:eo_apk_mbk_v2/form_blocs/form_bloc.dart';
 import 'package:eo_apk_mbk_v2/helpers/constant.dart';
 import 'package:eo_apk_mbk_v2/helpers/gallery_manager.dart';
 import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
@@ -18,7 +19,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 
 class CameraScreen extends StatefulWidget {
-  const CameraScreen({super.key});
+  const CameraScreen({
+    super.key,
+  });
 
   @override
   State<CameraScreen> createState() => _CameraScreenState();
@@ -27,6 +30,8 @@ class CameraScreen extends StatefulWidget {
 class _CameraScreenState extends State<CameraScreen> {
   List<File?> capturedImages = List.generate(4, (index) => null);
   List<String?> savedImagePaths = List.generate(4, (index) => null);
+  bool _isInitialized = false;
+  CompoundParkingFormBloc? formBloc;
 
   @override
   void initState() {
@@ -119,6 +124,21 @@ class _CameraScreenState extends State<CameraScreen> {
         name: fileName,
       );
 
+      switch (indexToUpdate) {
+        case 0:
+          formBloc?.imageName1.updateValue(fileName);
+          break;
+        case 1:
+          formBloc?.imageName2.updateValue(fileName);
+          break;
+        case 2:
+          formBloc?.imageName3.updateValue(fileName);
+          break;
+        case 3:
+          formBloc?.imageName4.updateValue(fileName);
+          break;
+      }
+
       setState(() {
         capturedImages[indexToUpdate] = savedFile;
         savedImagePaths[indexToUpdate] = customPath;
@@ -153,6 +173,20 @@ class _CameraScreenState extends State<CameraScreen> {
     });
 
     await SharedPreferencesHelper.setCapturedImagePaths(savedImagePaths);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      final arguments =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (arguments != null) {
+        formBloc =
+            arguments['compoundParkingFormBloc'] as CompoundParkingFormBloc;
+      }
+      _isInitialized = true;
+    }
   }
 
   @override

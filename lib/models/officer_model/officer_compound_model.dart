@@ -1,7 +1,18 @@
 class OfficerCompoundModel {
-  int? compoundAmount;
-  String? compoundExpiryDateString;
+  String? noticeNo;
+  String? vehicleNo;
+  String? offenceDateString;
+  String? officerId;
   String? handheldCode;
+  String? vehicleType;
+  String? vehicleMakeModel;
+  String? vehicleColor;
+  String? roadTaxNo;
+  String? offenceSectionCode;
+  String? offenceArea;
+  String? offenceLocation;
+  String? offenceLocationDetails;
+  int? compoundAmount;
   String? imageName1;
   String? imageName2;
   String? imageName3;
@@ -9,56 +20,55 @@ class OfficerCompoundModel {
   String? imageName5;
   bool? isClamping;
   String? notes;
-  String? noticeNo;
-  int? offenceActCode;
-  String? offenceDateString;
-  String? offenceLocation;
-  String? offenceLocationArea;
-  String? offenceLocationDetails;
-  int? offenceSectionCode;
-  String? officerID;
-  String? officerSaksi;
   String? officerUnit;
-  String? roadTaxNo;
+  double? latitude;
+  double? longitude;
   String? squarePoleNo;
-  String? vehicleColor;
-  String? vehicleMakeModel;
-  String? vehicleNo;
-  String? vehicleType;
+  String? officerSaksi;
 
-  OfficerCompoundModel({
-    this.compoundAmount,
-    this.compoundExpiryDateString,
-    this.handheldCode,
-    this.imageName1,
-    this.imageName2,
-    this.imageName3,
-    this.imageName4,
-    this.imageName5,
-    this.isClamping,
-    this.notes,
-    this.noticeNo,
-    this.offenceActCode,
-    this.offenceDateString,
-    this.offenceLocation,
-    this.offenceLocationArea,
-    this.offenceLocationDetails,
-    this.offenceSectionCode,
-    this.officerID,
-    this.officerSaksi,
-    this.officerUnit,
-    this.roadTaxNo,
-    this.squarePoleNo,
-    this.vehicleColor,
-    this.vehicleMakeModel,
-    this.vehicleNo,
-    this.vehicleType,
-  });
+  OfficerCompoundModel(
+      {this.noticeNo,
+      this.vehicleNo,
+      this.offenceDateString,
+      this.officerId,
+      this.handheldCode,
+      this.vehicleType,
+      this.vehicleMakeModel,
+      this.vehicleColor,
+      this.roadTaxNo,
+      this.offenceSectionCode,
+      this.offenceArea,
+      this.offenceLocation,
+      this.offenceLocationDetails,
+      this.compoundAmount,
+      this.imageName1,
+      this.imageName2,
+      this.imageName3,
+      this.imageName4,
+      this.imageName5,
+      this.isClamping,
+      this.notes,
+      this.officerUnit,
+      this.latitude,
+      this.longitude,
+      this.squarePoleNo,
+      this.officerSaksi});
 
   OfficerCompoundModel.fromJson(Map<String, dynamic> json) {
-    compoundAmount = json['CompoundAmount'];
-    compoundExpiryDateString = json['CompoundExpiryDateString'];
+    noticeNo = json['NoticeNo'];
+    vehicleNo = json['VehicleNo'];
+    offenceDateString = json['OffenceDateString'];
+    officerId = json['OfficerID'];
     handheldCode = json['HandheldCode'];
+    vehicleType = json['VehicleType'];
+    vehicleMakeModel = json['VehicleMakeModel'];
+    vehicleColor = json['VehicleColor'];
+    roadTaxNo = json['RoadTaxNo'];
+    offenceSectionCode = json['OffenceSectionCode'];
+    offenceArea = json['OffenceArea'];
+    offenceLocation = json['OffenceLocation'];
+    offenceLocationDetails = json['OffenceLocationDetails'];
+    compoundAmount = json['CompoundAmount'];
     imageName1 = json['ImageName1'];
     imageName2 = json['ImageName2'];
     imageName3 = json['ImageName3'];
@@ -66,29 +76,29 @@ class OfficerCompoundModel {
     imageName5 = json['ImageName5'];
     isClamping = json['IsClamping'];
     notes = json['Notes'];
-    noticeNo = json['NoticeNo'];
-    offenceActCode = json['OffenceActCode'];
-    offenceDateString = json['OffenceDateString'];
-    offenceLocation = json['OffenceLocation'];
-    offenceLocationArea = json['OffenceLocationArea'];
-    offenceLocationDetails = json['OffenceLocationDetails'];
-    offenceSectionCode = json['OffenceSectionCode'];
-    officerID = json['OfficerID'];
-    officerSaksi = json['OfficerSaksi'];
     officerUnit = json['OfficerUnit'];
-    roadTaxNo = json['RoadTaxNo'];
+    latitude = json['Latitude'];
+    longitude = json['Longitude'];
     squarePoleNo = json['SquarePoleNo'];
-    vehicleColor = json['VehicleColor'];
-    vehicleMakeModel = json['VehicleMakeModel'];
-    vehicleNo = json['VehicleNo'];
-    vehicleType = json['VehicleType'];
+    officerSaksi = json['OfficerSaksi'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['CompoundAmount'] = compoundAmount;
-    data['CompoundExpiryDateString'] = compoundExpiryDateString;
+    data['NoticeNo'] = noticeNo;
+    data['VehicleNo'] = vehicleNo;
+    data['OffenceDateString'] = offenceDateString;
+    data['OfficerID'] = officerId;
     data['HandheldCode'] = handheldCode;
+    data['VehicleType'] = vehicleType;
+    data['VehicleMakeModel'] = vehicleMakeModel;
+    data['VehicleColor'] = vehicleColor;
+    data['RoadTaxNo'] = roadTaxNo;
+    data['OffenceSectionCode'] = offenceSectionCode;
+    data['OffenceArea'] = offenceArea;
+    data['OffenceLocation'] = offenceLocation;
+    data['OffenceLocationDetails'] = offenceLocationDetails;
+    data['CompoundAmount'] = compoundAmount;
     data['ImageName1'] = imageName1;
     data['ImageName2'] = imageName2;
     data['ImageName3'] = imageName3;
@@ -96,22 +106,11 @@ class OfficerCompoundModel {
     data['ImageName5'] = imageName5;
     data['IsClamping'] = isClamping;
     data['Notes'] = notes;
-    data['NoticeNo'] = noticeNo;
-    data['OffenceActCode'] = offenceActCode;
-    data['OffenceDateString'] = offenceDateString;
-    data['OffenceLocation'] = offenceLocation;
-    data['OffenceLocationArea'] = offenceLocationArea;
-    data['OffenceLocationDetails'] = offenceLocationDetails;
-    data['OffenceSectionCode'] = offenceSectionCode;
-    data['OfficerID'] = officerID;
-    data['OfficerSaksi'] = officerSaksi;
     data['OfficerUnit'] = officerUnit;
-    data['RoadTaxNo'] = roadTaxNo;
+    data['Latitude'] = latitude;
+    data['Longitude'] = longitude;
     data['SquarePoleNo'] = squarePoleNo;
-    data['VehicleColor'] = vehicleColor;
-    data['VehicleMakeModel'] = vehicleMakeModel;
-    data['VehicleNo'] = vehicleNo;
-    data['VehicleType'] = vehicleType;
+    data['OfficerSaksi'] = officerSaksi;
     return data;
   }
 }

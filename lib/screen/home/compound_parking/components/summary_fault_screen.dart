@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'dart:async';
 import 'dart:io';
@@ -45,10 +45,13 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
         _currentTime = _formatDateTime(now);
       });
 
-      widget.compoundParkingFormBloc?.dateTime
-          .updateValue(now.toIso8601String());
+      final formattedForStorage =
+          DateFormat('yyyyMMddhhmma').format(now).toUpperCase();
+      widget.compoundParkingFormBloc?.dateTime.updateValue(formattedForStorage);
     });
+
     _startAutoScroll();
+    _getBtnPushStatus();
   }
 
   void _startAutoScroll() {
@@ -76,6 +79,12 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
     return DateFormat('dd MMM yyyy, hh:mm:ss a').format(dateTime);
   }
 
+  Future<bool> _getBtnPushStatus() async {
+    final response = await SharedPreferencesHelper.getCheckPush();
+
+    return response;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -92,6 +101,7 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
             color: accentCanvasColor,
             onPressed: () {
               setState(() {
+                // Submit the form
                 widget.compoundParkingFormBloc?.submit();
               });
             },

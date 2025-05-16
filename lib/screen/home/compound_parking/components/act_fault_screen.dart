@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:eo_apk_mbk_v2/form_blocs/form_bloc.dart';
 import 'package:eo_apk_mbk_v2/helpers/constant.dart';
 import 'package:eo_apk_mbk_v2/models/models.dart';
@@ -83,10 +85,8 @@ class ActFaultScreen extends StatelessWidget {
               },
             ),
 
-            BlocBuilder<
-              SelectFieldBloc<OffenceSectionModel, dynamic>,
-              SelectFieldBlocState<OffenceSectionModel, dynamic>
-            >(
+            BlocBuilder<SelectFieldBloc<OffenceSectionModel, dynamic>,
+                SelectFieldBlocState<OffenceSectionModel, dynamic>>(
               bloc: compoundParkingFormBloc!.section,
               builder: (context, state) {
                 final hasSelection = state.value != null;
