@@ -264,7 +264,7 @@ class _CameraScreenState extends State<CameraScreen> {
                     buttonWidth: 0.4,
                     borderRadius: 10.0,
                     color: accentCanvasColor,
-                    onPressed: () {},
+                    onPressed: () => Navigator.of(context).pop(),
                     label: Text(
                       AppLocalizations.of(context)!.ok,
                       style: textStyleNormal(color: kWhite),

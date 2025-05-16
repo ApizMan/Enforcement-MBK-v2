@@ -333,6 +333,15 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
         }
       }
 
+      // 🚨 Validate vehicle image
+      final imagePaths = await SharedPreferencesHelper.getCapturedImagePaths();
+      final validImages =
+          imagePaths.where((path) => path != null && path.isNotEmpty).toList();
+      if (validImages.length < 2) {
+        emitFailure(failureResponse: "Sila ambil sekurang-kurangnya 2 gambar.");
+        return;
+      }
+
       // 🚨 Validate placement
       if (placement.value == null) {
         emitFailure(failureResponse: "Sila Pilih Nama Jalan.");

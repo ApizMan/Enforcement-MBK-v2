@@ -153,8 +153,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 onSuccess: (context, state) async {
                   LoadingDialog.hide(context);
 
-                  Get.toNamed(RouteManager.homeScreen);
-
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(state.successResponse!)),
                   );
@@ -211,8 +209,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       case ValidationForm.missingPlacement:
                         return showWarning(context, "Sila Pilih Nama Jalan.");
                       case ValidationForm.missingImages:
-                        return showWarning(context,
-                            "⚠️ Sila ambil sekurang-kurangnya 2 gambar.");
+                        return showWarning(
+                            context, "Sila ambil sekurang-kurangnya 2 gambar.");
                       case ValidationForm.none:
                         return;
                     }
