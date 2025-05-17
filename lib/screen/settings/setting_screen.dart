@@ -73,6 +73,12 @@ class _SettingScreenState extends State<SettingScreen> {
         hideActionButton: true,
         bottomSize: noBottomAppBarSize,
         title: AppLocalizations.of(context)!.setting,
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: Icon(Icons.arrow_back),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(10.0),

@@ -4,9 +4,13 @@ import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
 import 'package:eo_apk_mbk_v2/models/models.dart';
 import 'package:eo_apk_mbk_v2/resources/resources.dart';
 
-Future<OffenceDataModel> fetchOffenceAreasList() async {
+Future<OffenceDataModel> fetchOffenceAreasList({
+  void Function(String, double)? onProgress,
+}) async {
   final deviceInfo = DeviceInfoPlugin();
   String? deviceId;
+
+  onProgress?.call("Detecting device info...", 0.15);
 
   if (Platform.isAndroid) {
     AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
@@ -16,20 +20,7 @@ Future<OffenceDataModel> fetchOffenceAreasList() async {
     deviceId = iosInfo.identifierForVendor;
   }
 
-  if (deviceId == null) {
-    return OffenceDataModel(
-      users: [],
-      units: [],
-      vehicleMakesModel: [],
-      vehicleModelsModel: [],
-      vehicleTypeModel: [],
-      vehicleColorModel: [],
-      offenceActModel: [],
-      offenceSectionModel: [],
-      offenceAreaModel: [],
-      offenceLocationModel: [],
-    );
-  }
+  onProgress?.call("Registering handheld...", 0.25);
 
   final response = await OffenceResources.getDevice(
     prefix: 'RegisterDevice/$deviceId',
@@ -38,11 +29,13 @@ Future<OffenceDataModel> fetchOffenceAreasList() async {
   if (response != null && response['HandheldCode'] != null) {
     final handheldCode = response['HandheldCode'];
 
+    await SharedPreferencesHelper.saveHandheldId(handheldCode);
+
+    onProgress?.call("Downloading lookup table...", 0.35);
+
     final lookupResponse = await OffenceResources.getDownloadLookupTable(
       prefix: 'DownloadLookupTable/$handheldCode',
     );
-
-    await SharedPreferencesHelper.saveHandheldId(handheldCode);
 
     List<UserModel> users = [];
     List<OfficerUnitModel> units = [];
@@ -57,73 +50,73 @@ Future<OffenceDataModel> fetchOffenceAreasList() async {
 
     if (lookupResponse != null) {
       if (lookupResponse['OfficerInfos'] is List) {
-        users =
-            (lookupResponse['OfficerInfos'] as List)
-                .map((e) => UserModel.fromJson(e))
-                .toList();
+        onProgress?.call("Loading officer data...", 0.45);
+        users = (lookupResponse['OfficerInfos'] as List)
+            .map((e) => UserModel.fromJson(e))
+            .toList();
       }
 
       if (lookupResponse['OfficerUnits'] is List) {
-        units =
-            (lookupResponse['OfficerUnits'] as List)
-                .map((e) => OfficerUnitModel.fromJson(e))
-                .toList();
+        onProgress?.call("Loading unit data...", 0.5);
+        units = (lookupResponse['OfficerUnits'] as List)
+            .map((e) => OfficerUnitModel.fromJson(e))
+            .toList();
       }
 
       if (lookupResponse['VehicleMakes'] is List) {
-        vehicleMakesModel =
-            (lookupResponse['VehicleMakes'] as List)
-                .map((e) => VehicleBrandModel.fromJson(e))
-                .toList();
+        onProgress?.call("Loading vehicle makes...", 0.55);
+        vehicleMakesModel = (lookupResponse['VehicleMakes'] as List)
+            .map((e) => VehicleBrandModel.fromJson(e))
+            .toList();
       }
 
       if (lookupResponse['VehicleModels'] is List) {
-        vehicleModelsModel =
-            (lookupResponse['VehicleModels'] as List)
-                .map((e) => VehicleModelsModel.fromJson(e))
-                .toList();
+        onProgress?.call("Loading vehicle models...", 0.6);
+        vehicleModelsModel = (lookupResponse['VehicleModels'] as List)
+            .map((e) => VehicleModelsModel.fromJson(e))
+            .toList();
       }
 
       if (lookupResponse['VehicleTypes'] is List) {
-        vehicleTypeModel =
-            (lookupResponse['VehicleTypes'] as List)
-                .map((e) => VehicleTypeModel.fromJson(e))
-                .toList();
+        onProgress?.call("Loading vehicle types...", 0.65);
+        vehicleTypeModel = (lookupResponse['VehicleTypes'] as List)
+            .map((e) => VehicleTypeModel.fromJson(e))
+            .toList();
       }
 
       if (lookupResponse['VehicleColors'] is List) {
-        vehicleColorModel =
-            (lookupResponse['VehicleColors'] as List)
-                .map((e) => VehicleColorModel.fromJson(e))
-                .toList();
+        onProgress?.call("Loading vehicle colors...", 0.7);
+        vehicleColorModel = (lookupResponse['VehicleColors'] as List)
+            .map((e) => VehicleColorModel.fromJson(e))
+            .toList();
       }
 
       if (lookupResponse['OffenceActs'] is List) {
-        offenceActModel =
-            (lookupResponse['OffenceActs'] as List)
-                .map((e) => OffenceActModel.fromJson(e))
-                .toList();
+        onProgress?.call("Loading offence acts...", 0.75);
+        offenceActModel = (lookupResponse['OffenceActs'] as List)
+            .map((e) => OffenceActModel.fromJson(e))
+            .toList();
       }
 
       if (lookupResponse['OffenceSections'] is List) {
-        offenceSectionModel =
-            (lookupResponse['OffenceSections'] as List)
-                .map((e) => OffenceSectionModel.fromJson(e))
-                .toList();
+        onProgress?.call("Loading offence sections...", 0.8);
+        offenceSectionModel = (lookupResponse['OffenceSections'] as List)
+            .map((e) => OffenceSectionModel.fromJson(e))
+            .toList();
       }
 
       if (lookupResponse['OffenceAreas'] is List) {
-        offenceAreaModel =
-            (lookupResponse['OffenceAreas'] as List)
-                .map((e) => OffenceAreaModel.fromJson(e))
-                .toList();
+        onProgress?.call("Loading offence areas...", 0.85);
+        offenceAreaModel = (lookupResponse['OffenceAreas'] as List)
+            .map((e) => OffenceAreaModel.fromJson(e))
+            .toList();
       }
 
       if (lookupResponse['OffenceLocations'] is List) {
-        offenceLocationModel =
-            (lookupResponse['OffenceLocations'] as List)
-                .map((e) => OffenceLocationModel.fromJson(e))
-                .toList();
+        onProgress?.call("Loading offence locations...", 0.9);
+        offenceLocationModel = (lookupResponse['OffenceLocations'] as List)
+            .map((e) => OffenceLocationModel.fromJson(e))
+            .toList();
       }
     }
 

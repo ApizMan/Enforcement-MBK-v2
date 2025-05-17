@@ -84,11 +84,10 @@ class _SidebarLayoutState extends State<SidebarLayout> {
         SidebarXItem(
           icon: Icons.home,
           label: 'Home',
-          onTap:
-              () => Navigator.pushReplacementNamed(
-                context,
-                RouteManager.homeScreen,
-              ),
+          onTap: () => Navigator.pushReplacementNamed(
+            context,
+            RouteManager.homeScreen,
+          ),
         ),
         SidebarXItem(
           icon: Icons.file_copy_rounded,
@@ -98,12 +97,14 @@ class _SidebarLayoutState extends State<SidebarLayout> {
         SidebarXItem(
           icon: Icons.settings,
           label: AppLocalizations.of(context)!.setting,
-          onTap:
-              () => Navigator.pushNamed(
-                context,
-                RouteManager.settingScreen,
-                arguments: {'handHeldId': widget.handHeldId},
-              ),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.pushNamed(
+              context,
+              RouteManager.settingScreen,
+              arguments: {'handHeldId': widget.handHeldId},
+            );
+          },
         ),
         SidebarXItem(
           icon: Icons.logout_outlined,

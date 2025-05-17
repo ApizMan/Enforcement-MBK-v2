@@ -1,9 +1,12 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:eo_apk_mbk_v2/helpers/constant.dart';
 import 'package:eo_apk_mbk_v2/helpers/global_method.dart';
 import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
 import 'package:eo_apk_mbk_v2/models/models.dart';
 import 'package:eo_apk_mbk_v2/routes/route_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:loading_indicator/loading_indicator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -19,6 +22,9 @@ class _SplashScreenState extends State<SplashScreen> {
   late String handHeldId;
   late OffenceDataModel data;
 
+  double progress = 0.0;
+  String loadingMessage = "Initializing...";
+
   @override
   void initState() {
     super.initState();
@@ -26,12 +32,72 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _startInitialization() async {
-    data = await fetchOffenceAreasList(); // ✅ Fetch this first
+    setState(() {
+      loadingMessage = "Fetching offence data...";
+      progress = 0.1;
+    });
 
-    await _getUserData(); // ✅ Then get user data
-    await requestPermissions(); // ✅ Then request permissions
+    data = await fetchWithRetry(context, onProgress: _updateProgress);
 
-    _initialize(); // ✅ Then run initialize logic
+    setState(() {
+      loadingMessage = "Reading user credentials...";
+      progress = 0.95;
+    });
+    await _getUserData();
+
+    setState(() {
+      loadingMessage = "Requesting permissions...";
+      progress = 0.98;
+    });
+    await requestPermissions();
+
+    _initialize();
+  }
+
+  Future<OffenceDataModel> fetchWithRetry(
+    BuildContext context, {
+    required void Function(String, double)? onProgress,
+  }) async {
+    final data = await fetchOffenceAreasList(onProgress: onProgress);
+
+    final isEmpty = data.users.isEmpty &&
+        data.units.isEmpty &&
+        data.vehicleMakesModel.isEmpty;
+
+    if (isEmpty) {
+      final retry = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => AlertDialog(
+          title: const Text("Connection Error"),
+          content: const Text(
+              "❌ Gagal memuat turun data daripada server.\nCuba lagi?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("Batal"),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text("Cuba Lagi"),
+            ),
+          ],
+        ),
+      );
+
+      if (retry == true) {
+        return await fetchWithRetry(context, onProgress: onProgress);
+      }
+    }
+
+    return data;
+  }
+
+  void _updateProgress(String message, double percent) {
+    setState(() {
+      loadingMessage = message;
+      progress = percent;
+    });
   }
 
   Future<void> requestPermissions() async {
@@ -103,12 +169,49 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBackgroundColor,
-      body: Stack(
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          SizedBox(
-            height: double.infinity,
-            width: double.infinity,
-            child: Image.asset(logo),
+          const SizedBox(), // Top spacer
+          Center(
+            child: Image.asset(
+              logo,
+              width: double.infinity,
+              height: MediaQuery.of(context).size.height * 0.3,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 40),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  height: 40,
+                  width: 40,
+                  child: LoadingIndicator(
+                    indicatorType: Indicator.ballSpinFadeLoader,
+                    colors: [
+                      kPrimaryColor,
+                      kPrimaryColor.withOpacity(0.5),
+                      kBlack
+                    ],
+                    backgroundColor: kBackgroundColor,
+                    pathBackgroundColor: kBackgroundColor,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  loadingMessage,
+                  style: const TextStyle(color: kBlack, fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  "${(progress * 100).toInt()}%",
+                  style: const TextStyle(color: kBlack, fontSize: 14),
+                ),
+              ],
+            ),
           ),
         ],
       ),
