@@ -291,6 +291,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         userModel: userModel,
                         unitModel: unitModel,
                         handHeldId: handHeldId,
+                        offenceActModel: offenceActModel,
+                        offenceAreaModel: offenceAreaModel,
+                        offenceLocationModel: offenceLocationModel,
+                        offenceSectionModel: offenceSectionModel,
+                        vehicleColorModel: vehicleColorModel,
+                        vehicleMakesModel: vehicleMakesModel,
+                        vehicleModelsModel: vehicleModelsModel,
+                        vehicleTypeModel: vehicleTypeModel,
                       ),
                       body: isCompoundParking
                           ? CompoundParkingScreen(

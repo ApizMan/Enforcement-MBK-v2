@@ -360,6 +360,8 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       // Save Form inside SharedPreferences
       await SharedPreferencesHelper.saveOfficerCompoundModel(compoundModel);
 
+      await SharedPreferencesHelper.incrementNoticeSerialNumber();
+
       emitSuccess();
     } catch (e) {
       e.toString();

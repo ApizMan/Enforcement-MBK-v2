@@ -145,7 +145,6 @@ class _CameraScreenState extends State<CameraScreen> {
       });
 
       await SharedPreferencesHelper.setCapturedImagePaths(savedImagePaths);
-      await SharedPreferencesHelper.incrementNoticeSerialNumber();
     } else {
       _captureImage(); // Retry
     }

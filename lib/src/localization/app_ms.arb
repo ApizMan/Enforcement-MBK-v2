@@ -58,5 +58,10 @@
   "ok": "OK",
   "capture": "Tangkap",
   "print": "Cetak",
-  "warning": "Amaran"
+  "warning": "Amaran",
+  "noticeNo": "Nombor Notis",
+  "close": "Tutup",
+  "noNewNotice": "Tiada Notis Baharu",
+  "pendingDesc": "Menunggu Salinan Pendua",
+  "searching": "Mencari"
 }

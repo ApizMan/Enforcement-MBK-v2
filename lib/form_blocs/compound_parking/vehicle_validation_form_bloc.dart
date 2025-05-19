@@ -26,41 +26,27 @@ class VehicleValidationFormBloc extends FormBloc<String, String> {
       await SharedPreferencesHelper.saveTokenTM(token);
     }
 
-    final respondTM =
-        await VehicleValidationResource.validateVehicleTrafficManagement(
-      prefix: 'verify-vehicle',
-      token: token,
-      body: jsonEncode({'plate_number': plateNumber.value}),
-    );
-
     // Button been pushed
     await SharedPreferencesHelper.btnCheckPush(push: true);
 
-    if (respondTM['success'] == true &&
-        respondTM['data'] is List &&
-        respondTM['data'].isNotEmpty) {
-      final data = respondTM['data'][0];
-      emitSuccess(
-        successResponse:
-            'Berbayar - ${data['plate_number']} (${data['end_date']} ${data['end_time']})',
-      );
-    } else {
-      final respondEnYasin =
-          await VehicleValidationResource.validateVehicleEnYasin(
-        prefix: 'verify-vehicle-en-yasin',
-        body: jsonEncode({'plate': plateNumber.value}),
-      );
+    final response = await VehicleValidationResource.validateVehicle(
+      prefix: '/verify-vehicle',
+      body: jsonEncode({'plate_number': plateNumber.value}),
+    );
 
-      if (respondEnYasin is List && respondEnYasin.isNotEmpty) {
-        final data = respondEnYasin.first;
+    if (response != null && response is Map<String, dynamic>) {
+      final statusDescription = response['StatusDescription'];
+      final error = response['error'];
 
-        emitSuccess(
-          successResponse:
-              'Berbayar - ${data['plate']} (${data['enddate']} ${data['endtime']})',
-        );
+      if (statusDescription != null && statusDescription is String) {
+        emitSuccess(successResponse: statusDescription);
+      } else if (error != null && error is String) {
+        emitFailure(failureResponse: error);
       } else {
-        emitFailure(failureResponse: 'Tidak Berbayar');
+        emitFailure(failureResponse: 'Maklumat kenderaan tidak ditemui.');
       }
+    } else {
+      emitFailure(failureResponse: 'Ralat semasa menghubungi pelayan.');
     }
   }
 }

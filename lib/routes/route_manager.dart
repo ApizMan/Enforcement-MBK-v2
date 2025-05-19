@@ -20,6 +20,10 @@ class RouteManager {
   static const compoundParkingBody = 'compoundParkingBody';
   static const compoundAmBody = 'compoundAmBody';
 
+  // Duplicate Copy
+  static const duplicateCopyParkingScreen = '/duplicateCopyParkingScreen';
+  static const duplicateCopyAmScreen = '/duplicateCopyAmScreen';
+
   static final routes = [
     // Auth
     GetPage(name: splashScreen, page: () => SplashScreen()),
@@ -38,5 +42,15 @@ class RouteManager {
 
     // Camera
     GetPage(name: cameraScreen, page: () => CameraScreen()),
+
+    // Duplicate Copy
+    GetPage(
+      name: duplicateCopyParkingScreen,
+      page: () => DuplicateCopyParkingScreen(),
+    ),
+    GetPage(
+      name: duplicateCopyAmScreen,
+      page: () => DuplicateCopyAmScreen(),
+    ),
   ];
 }

@@ -11,11 +11,27 @@ class SidebarLayout extends StatefulWidget {
   final List<UserModel> userModel;
   final List<OfficerUnitModel> unitModel;
   final String handHeldId;
+  final List<VehicleTypeModel> vehicleTypeModel;
+  final List<VehicleBrandModel> vehicleMakesModel;
+  final List<VehicleModelsModel> vehicleModelsModel;
+  final List<VehicleColorModel> vehicleColorModel;
+  final List<OffenceActModel> offenceActModel;
+  final List<OffenceSectionModel> offenceSectionModel;
+  final List<OffenceAreaModel> offenceAreaModel;
+  final List<OffenceLocationModel> offenceLocationModel;
   const SidebarLayout({
     super.key,
     required this.unitModel,
     required this.userModel,
     required this.handHeldId,
+    required this.offenceActModel,
+    required this.offenceAreaModel,
+    required this.offenceLocationModel,
+    required this.offenceSectionModel,
+    required this.vehicleColorModel,
+    required this.vehicleMakesModel,
+    required this.vehicleModelsModel,
+    required this.vehicleTypeModel,
   });
 
   @override
@@ -87,12 +103,44 @@ class _SidebarLayoutState extends State<SidebarLayout> {
           onTap: () => Navigator.pushReplacementNamed(
             context,
             RouteManager.homeScreen,
+            arguments: {
+              'userModel': widget.userModel,
+              'unitModel': widget.unitModel,
+              'handHeldId': widget.handHeldId,
+              'vehicleTypeModel': widget.vehicleTypeModel,
+              'vehicleMakesModel': widget.vehicleMakesModel,
+              'vehicleModelsModel': widget.vehicleModelsModel,
+              'vehicleColorModel': widget.vehicleColorModel,
+              'offenceActModel': widget.offenceActModel,
+              'offenceSectionModel': widget.offenceSectionModel,
+              'offenceAreaModel': widget.offenceAreaModel,
+              'offenceLocationModel': widget.offenceLocationModel,
+            },
           ),
         ),
         SidebarXItem(
           icon: Icons.file_copy_rounded,
           label: AppLocalizations.of(context)!.duplicateCopy,
-          onTap: () {},
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.pushNamed(
+              context,
+              RouteManager.duplicateCopyParkingScreen,
+              arguments: {
+                'userModel': widget.userModel,
+                'unitModel': widget.unitModel,
+                'handHeldId': widget.handHeldId,
+                'vehicleTypeModel': widget.vehicleTypeModel,
+                'vehicleMakesModel': widget.vehicleMakesModel,
+                'vehicleModelsModel': widget.vehicleModelsModel,
+                'vehicleColorModel': widget.vehicleColorModel,
+                'offenceActModel': widget.offenceActModel,
+                'offenceSectionModel': widget.offenceSectionModel,
+                'offenceAreaModel': widget.offenceAreaModel,
+                'offenceLocationModel': widget.offenceLocationModel,
+              },
+            );
+          },
         ),
         SidebarXItem(
           icon: Icons.settings,

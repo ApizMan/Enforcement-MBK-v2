@@ -104,18 +104,7 @@ class SharedPreferencesHelper {
   static Future<int> getNoticeSerialNumber() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Get stored date, default to empty
-    final String? storedDate = prefs.getString(serialDateKey);
-    final String today = DateTime.now().toIso8601String().split('T').first;
-
-    // If new day, reset serial number
-    if (storedDate != today) {
-      await prefs.setInt(serialNumberKey, 0);
-      await prefs.setString(serialDateKey, today);
-      return 0;
-    }
-
-    // Return current serial number
+    // Just get the current serial number, no date logic
     return prefs.getInt(serialNumberKey) ?? 0;
   }
 
@@ -125,7 +114,7 @@ class SharedPreferencesHelper {
     final int current = prefs.getInt(serialNumberKey) ?? 0;
     await prefs.setInt(serialNumberKey, current + 1);
 
-    // Ensure the date is also up-to-date (optional safeguard)
+    // Optional: update the date, if you still want to store it
     final String today = DateTime.now().toIso8601String().split('T').first;
     await prefs.setString(serialDateKey, today);
   }
@@ -166,21 +155,28 @@ class SharedPreferencesHelper {
   static Future<void> saveOfficerCompoundModel(
       OfficerCompoundModel model) async {
     final prefs = await SharedPreferences.getInstance();
-    String jsonString = jsonEncode(model.toJson());
-    await prefs.setString(officerCompoundModelKey, jsonString);
+
+    // Retrieve existing list
+    List<String> jsonList = prefs.getStringList(officerCompoundModelKey) ?? [];
+
+    // Add new model
+    jsonList.add(jsonEncode(model.toJson()));
+
+    // Save updated list
+    await prefs.setStringList(officerCompoundModelKey, jsonList);
   }
 
   // Get Form
-  static Future<OfficerCompoundModel?> getOfficerCompoundModel() async {
+  static Future<List<OfficerCompoundModel>>
+      getAllOfficerCompoundModels() async {
     final prefs = await SharedPreferences.getInstance();
-    String? jsonString = prefs.getString(officerCompoundModelKey);
 
-    if (jsonString != null && jsonString.isNotEmpty) {
+    List<String> jsonList = prefs.getStringList(officerCompoundModelKey) ?? [];
+
+    return jsonList.map((jsonString) {
       Map<String, dynamic> jsonMap = jsonDecode(jsonString);
       return OfficerCompoundModel.fromJson(jsonMap);
-    }
-
-    return null;
+    }).toList();
   }
 
   // Clear Form

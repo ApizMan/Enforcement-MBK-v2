@@ -14,3 +14,4 @@ export 'home/compound_parking/components/camera_screen.dart';
 export 'home/compound_parking/components/vehicle_fault_screen.dart';
 export 'home/compound_parking/components/act_fault_screen.dart';
 export 'home/compound_parking/components/summary_fault_screen.dart';
+export 'duplicate_copy/duplicate_copy.dart';

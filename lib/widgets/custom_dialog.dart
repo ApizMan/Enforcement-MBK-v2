@@ -41,110 +41,114 @@ class CustomDialog extends StatefulBuilder {
                     vertical: 15,
                     horizontal: 15,
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      icon != null
-                          ? Container(
-                            padding: const EdgeInsets.all(10.0),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: getBgColor(dialogType),
-                            ),
-                            child: Center(
-                              child: Icon(
-                                icon,
-                                color: getTextColor(dialogType),
-                                size: 30,
-                              ),
-                            ),
-                          )
-                          : spaceVertical(height: 0),
-                      // top ?? spaceVertical(0),
-                      icon != null
-                          ? spaceVertical(height: 10)
-                          : spaceVertical(height: 0),
-                      Text(
-                        title ?? "",
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        icon != null
+                            ? Container(
+                                padding: const EdgeInsets.all(10.0),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: getBgColor(dialogType),
+                                ),
+                                child: Center(
+                                  child: Icon(
+                                    icon,
+                                    color: getTextColor(dialogType),
+                                    size: 30,
+                                  ),
+                                ),
+                              )
+                            : spaceVertical(height: 0),
+                        // top ?? spaceVertical(0),
+                        icon != null
+                            ? spaceVertical(height: 10)
+                            : spaceVertical(height: 0),
+                        Text(
+                          title ?? "",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
-                      title != null
-                          ? spaceVertical(height: 10)
-                          : spaceVertical(height: 0),
-                      Text(
-                        description ?? "",
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: kGrey),
-                      ),
-                      description != null
-                          ? spaceVertical(height: 10)
-                          : spaceVertical(height: 0),
-                      center ?? spaceVertical(height: 0),
-                      center != null
-                          ? spaceVertical(height: 10)
-                          : spaceVertical(height: 0),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          btnCancelText != null
-                              ? Expanded(
-                                child: ScaleTap(
-                                  onPressed: btnCancelOnPress,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: kWhite,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(10),
-                                      child: Center(
-                                        child: Text(
-                                          btnCancelText,
-                                          style: const TextStyle(
-                                            color: kPrimaryColor,
+                        title != null
+                            ? spaceVertical(height: 10)
+                            : spaceVertical(height: 0),
+                        Text(
+                          description ?? "",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: kGrey),
+                        ),
+                        description != null
+                            ? spaceVertical(height: 10)
+                            : spaceVertical(height: 0),
+                        center ?? spaceVertical(height: 0),
+                        center != null
+                            ? spaceVertical(height: 10)
+                            : spaceVertical(height: 0),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            btnCancelText != null
+                                ? Expanded(
+                                    child: ScaleTap(
+                                      onPressed: btnCancelOnPress,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: kWhite,
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10),
+                                          child: Center(
+                                            child: Text(
+                                              btnCancelText,
+                                              style: const TextStyle(
+                                                color: kPrimaryColor,
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                              )
-                              : Container(),
-                          btnCancelText != null && btnOkText != null
-                              ? spaceHorizontal(width: 10.0)
-                              : spaceHorizontal(width: 0.0),
-                          btnOkText != null
-                              ? Expanded(
-                                child: ScaleTap(
-                                  onPressed: btnOkOnPress,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: getBgColor(dialogType),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(10),
-                                      child: Center(
-                                        child: Text(
-                                          btnOkText,
-                                          style: TextStyle(
-                                            color: getTextColor(dialogType),
+                                  )
+                                : Container(),
+                            btnCancelText != null && btnOkText != null
+                                ? spaceHorizontal(width: 10.0)
+                                : spaceHorizontal(width: 0.0),
+                            btnOkText != null
+                                ? Expanded(
+                                    child: ScaleTap(
+                                      onPressed: btnOkOnPress,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: getBgColor(dialogType),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10),
+                                          child: Center(
+                                            child: Text(
+                                              btnOkText,
+                                              style: TextStyle(
+                                                color: getTextColor(dialogType),
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                              )
-                              : Container(),
-                        ],
-                      ),
-                    ],
+                                  )
+                                : Container(),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

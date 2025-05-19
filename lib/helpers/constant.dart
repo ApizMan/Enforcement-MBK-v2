@@ -12,6 +12,8 @@ const String enYasinUrl =
 const String myEnfocementEnYasinUrl =
     'http://myenforce.citycarpark.my/HandheldApi_MBK/HandheldService.svc/JSONService/';
 
+const String validateVehicleUrl = 'http://220.158.208.216:3030';
+
 // Colors
 const Color kBlack = Colors.black;
 const Color kWhite = Colors.white;

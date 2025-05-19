@@ -58,5 +58,10 @@
   "ok": "OK",
   "capture": "Capture",
   "print": "Print",
-  "warning": "Warning"
+  "warning": "Warning",
+  "noticeNo": "Notice Number",
+  "close": "Close",
+  "noNewNotice": "No New Notices",
+  "pendingDesc": "Pending Duplicate Copy",
+  "searching": "Searching"
 }
