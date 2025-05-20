@@ -1,3 +1,8 @@
+// ignore_for_file: deprecated_member_use
+
+import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
+import 'package:eo_apk_mbk_v2/routes/route_manager.dart';
+import 'package:eo_apk_mbk_v2/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 
@@ -25,6 +30,7 @@ class PendingDuplicateScreen extends StatefulWidget {
   final List<OffenceLocationModel> offenceLocationModel;
   final bool isLoading;
   final CompoundResourcesSharedPreferences compoundHelper;
+  final String searchText; // Add in constructor
   const PendingDuplicateScreen({
     super.key,
     required this.dataSets,
@@ -41,6 +47,7 @@ class PendingDuplicateScreen extends StatefulWidget {
     required this.vehicleTypeModel,
     required this.isLoading,
     required this.compoundHelper,
+    required this.searchText,
   });
 
   @override
@@ -49,25 +56,6 @@ class PendingDuplicateScreen extends StatefulWidget {
 
 class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
   @override
-  void initState() {
-    super.initState();
-    _searchController.addListener(() {
-      setState(() {
-        _searchText = _searchController.text.trim().toLowerCase();
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  final TextEditingController _searchController = TextEditingController();
-  String _searchText = '';
-
-  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
@@ -75,30 +63,6 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
           ? const LoadingDialog()
           : Column(
               children: [
-                TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    label: Text(AppLocalizations.of(context)!.searching),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: accentCanvasColor,
-                    ),
-                    hintText:
-                        '${AppLocalizations.of(context)!.searching} ${AppLocalizations.of(context)!.noticeNo}',
-                    hintStyle: const TextStyle(color: Colors.black26),
-                    border: OutlineInputBorder(
-                      borderSide: const BorderSide(color: kBlack),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: kBlack),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.8),
-                  ),
-                ),
-                spaceVertical(height: 10.0),
                 Row(
                   children: [
                     const Expanded(child: Divider()),
@@ -112,6 +76,142 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                     const Expanded(child: Divider()),
                   ],
                 ),
+                widget.dataSets.isEmpty
+                    ? SizedBox.shrink()
+                    : Column(
+                        children: [
+                          spaceVertical(height: 10.0),
+                          PrimaryButton(
+                            buttonWidth: 0.9,
+                            borderRadius: 10.0,
+                            color: accentCanvasColor,
+                            onPressed: () async {
+                              // Get Form Pending
+                              final noticePending =
+                                  await SharedPreferencesHelper
+                                      .getAllOfficerCompoundPendingModels();
+
+                              for (var notice in noticePending) {
+                                final responseEnforcementCCP =
+                                    await UploadResources
+                                        .uploadCompoundToEnforcementCCP(
+                                            prefix: 'UploadNotice',
+                                            body: {
+                                      'NoticeNo': notice.noticeNo.toString(),
+                                      'VehicleNo': notice.vehicleNo.toString(),
+                                      'OfficerID': notice.officerId.toString(),
+                                      'OfficerUnit':
+                                          notice.officerUnit.toString(),
+                                      'HandheldCode':
+                                          notice.handheldCode.toString(),
+                                      'OffenceDateString':
+                                          notice.offenceDateString.toString(),
+                                      'VehicleType':
+                                          notice.vehicleType.toString(),
+                                      'VehicleColor':
+                                          notice.vehicleColor.toString(),
+                                      'VehicleMakeModel':
+                                          notice.vehicleMakeModel.toString(),
+                                      'RoadTaxNo': notice.roadTaxNo.toString(),
+                                      'OffenceSectionCode':
+                                          notice.offenceSectionCode.toString(),
+                                      'OffenceArea':
+                                          notice.offenceArea.toString(),
+                                      'OffenceLocation':
+                                          notice.offenceLocation.toString(),
+                                      'OffenceLocationDetails': notice
+                                          .offenceLocationDetails
+                                          .toString(),
+                                      'SquarePoleNo':
+                                          notice.squarePoleNo.toString(),
+                                      'ImageName1':
+                                          notice.imageName1.toString(),
+                                      'ImageName2':
+                                          notice.imageName2.toString(),
+                                      'ImageName3':
+                                          notice.imageName3.toString(),
+                                      'ImageName4':
+                                          notice.imageName4.toString(),
+                                      'ImageName5':
+                                          notice.imageName5.toString(),
+                                      'IsClamping':
+                                          notice.isClamping.toString(),
+                                      'Notes': notice.notes.toString(),
+                                      'Latitude': notice.latitude,
+                                      'Longitude': notice.longitude,
+                                      'CompoundAmount': notice.compoundAmount,
+                                      'OfficerSaksi':
+                                          notice.officerSaksi.toString(),
+                                    });
+
+                                if (responseEnforcementCCP[
+                                        'StatusDescription'] ==
+                                    null) {
+                                  await SharedPreferencesHelper
+                                      .saveOfficerCompoundModel(notice);
+
+                                  await SharedPreferencesHelper
+                                      .removeOfficerCompoundPendingByNoticeNo(
+                                          notice.noticeNo!);
+                                } else {
+                                  CustomDialog.show(
+                                    context,
+                                    dialogType: DialogType.danger,
+                                    icon: Icons.warning,
+                                    title:
+                                        AppLocalizations.of(context)!.warning,
+                                    description: responseEnforcementCCP[
+                                        'StatusDescription'],
+                                    btnOkText: AppLocalizations.of(context)!.ok,
+                                    btnOkOnPress: () => Navigator.pop(context),
+                                  );
+                                }
+                              }
+
+                              CustomDialog.show(
+                                context,
+                                dialogType: DialogType.info,
+                                icon: Icons.done,
+                                title: AppLocalizations.of(context)!
+                                    .successUploaded,
+                                description:
+                                    'Pending Compound Success been uploaded to Server.',
+                                btnOkText: AppLocalizations.of(context)!.ok,
+                                btnOkOnPress: () =>
+                                    Navigator.pushNamedAndRemoveUntil(
+                                        context,
+                                        RouteManager.homeScreen,
+                                        (route) => false,
+                                        arguments: {
+                                      'userModel': widget.userModel,
+                                      'unitModel': widget.unitModel,
+                                      'handHeldId': widget.handHeldId,
+                                      'vehicleTypeModel':
+                                          widget.vehicleTypeModel,
+                                      'vehicleMakesModel':
+                                          widget.vehicleMakesModel,
+                                      'vehicleModelsModel':
+                                          widget.vehicleModelsModel,
+                                      'vehicleColorModel':
+                                          widget.vehicleColorModel,
+                                      'offenceActModel': widget.offenceActModel,
+                                      'offenceSectionModel':
+                                          widget.offenceSectionModel,
+                                      'offenceAreaModel':
+                                          widget.offenceAreaModel,
+                                      'offenceLocationModel':
+                                          widget.offenceLocationModel,
+                                    }),
+                              );
+                            },
+                            label: Text(
+                              AppLocalizations.of(context)!.resubmit,
+                              style:
+                                  textStyleNormal(color: kWhite, fontSize: 10),
+                            ),
+                          ),
+                        ],
+                      ),
                 spaceVertical(height: 10.0),
                 Expanded(
                   child: widget.dataSets.isEmpty
@@ -128,8 +228,8 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                           itemCount: widget.dataSets.length,
                           itemBuilder: (context, index) {
                             final compoundEntry = widget.dataSets[index];
-                            final model =
-                                widget.compoundHelper.compoundList[index];
+                            final model = widget
+                                .compoundHelper.compoundListPending[index];
 
                             String getValue(String label) {
                               return compoundEntry.firstWhere(
@@ -141,10 +241,9 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
 
                             final noticeNo =
                                 getValue('Notice No').toLowerCase();
-                            if (_searchText.isNotEmpty &&
-                                !noticeNo.contains(_searchText)) {
-                              return const SizedBox
-                                  .shrink(); // Hide if not matched
+                            if (widget.searchText.isNotEmpty &&
+                                !noticeNo.contains(widget.searchText)) {
+                              return const SizedBox.shrink();
                             }
 
                             return ScaleTap(
@@ -335,7 +434,8 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
       model.imageName5,
     ];
 
-    const imageDirPath = '/storage/emulated/0/Pictures/';
+    const imageDirPath =
+        '/storage/emulated/0/Download/Pictures/CompoundImages/';
 
     final validImages = imageNames
         .where((name) => name != null && name.isNotEmpty)

@@ -12,9 +12,18 @@ class PrinterLayout {
   static String settingPrinterLayout({
     required String handHeldId,
     required Map<String, dynamic> userData,
+    required int compoundTotal,
+    required int compoundPendingTotal,
+    required int countImage,
   }) {
     final doc = PrintingDocument("500");
-    doc.drawStatusBox(userData, handHeldId);
+    doc.drawStatusBox(
+      userData: userData,
+      handHeldId: handHeldId,
+      compoundTotal: compoundTotal,
+      compoundPendingTotal: compoundPendingTotal,
+      countImage: countImage,
+    );
 
     String zpl = '''
 ! U1 setvar "device.languages" "zpl"

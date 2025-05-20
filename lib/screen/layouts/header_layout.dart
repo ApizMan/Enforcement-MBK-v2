@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:eo_apk_mbk_v2/controllers/home_controller.dart';
 import 'package:eo_apk_mbk_v2/form_blocs/form_bloc.dart';
 import 'package:eo_apk_mbk_v2/helpers/constant.dart';
@@ -71,14 +73,35 @@ class HeaderLayout extends StatelessWidget implements PreferredSizeWidget {
                     },
                   ),
                   PopupMenuItem(
+                    enabled: false,
                     child: Row(
                       children: [
                         Icon(Icons.castle_rounded, color: kBlack),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10.0),
-                          child: Text(
-                            AppLocalizations.of(context)!.compoundAm,
-                          ),
+                        Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10.0),
+                              child: Text(
+                                AppLocalizations.of(context)!.compoundAm,
+                              ),
+                            ),
+                            spaceHorizontal(width: 20.0),
+                            Container(
+                              decoration: BoxDecoration(
+                                  color: kGrey.withOpacity(0.5),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(10.0))),
+                              child: Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Text(
+                                  AppLocalizations.of(context)!.comingSoon,
+                                  style: textStyleNormal(
+                                      fontSize: 10.0,
+                                      fontStyle: FontStyle.italic),
+                                ),
+                              ),
+                            )
+                          ],
                         ),
                       ],
                     ),

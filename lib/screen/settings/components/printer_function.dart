@@ -13,12 +13,18 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class PrinterFunction extends StatefulWidget {
   final Map<String, dynamic> printerMAC;
   final Map<String, dynamic> userData;
+  final int compoundTotal;
+  final int compoundPendingTotal;
+  final int countImage;
   final String handHeldId;
   const PrinterFunction({
     super.key,
     required this.printerMAC,
     required this.handHeldId,
     required this.userData,
+    required this.compoundTotal,
+    required this.compoundPendingTotal,
+    required this.countImage,
   });
 
   @override
@@ -38,11 +44,13 @@ class _PrinterFunctionState extends State<PrinterFunction> {
         .substring(0, 17);
   }
 
-  Future<void> connectAndPrint({
-    required String rawMac,
-    required String handHeldId,
-    required Map<String, dynamic> userData,
-  }) async {
+  Future<void> connectAndPrint(
+      {required String rawMac,
+      required String handHeldId,
+      required Map<String, dynamic> userData,
+      required int compoundTotal,
+      required int compoundPendingTotal,
+      required int countImage}) async {
     setState(() => isPrinting = true);
 
     String mac = formatMacAddress(rawMac);
@@ -54,6 +62,9 @@ class _PrinterFunctionState extends State<PrinterFunction> {
       final zpl = PrinterLayout.settingPrinterLayout(
         handHeldId: handHeldId,
         userData: userData,
+        compoundTotal: compoundTotal,
+        compoundPendingTotal: compoundPendingTotal,
+        countImage: countImage,
       );
 
       // Full ZPL with label height and orientation
@@ -132,33 +143,32 @@ class _PrinterFunctionState extends State<PrinterFunction> {
                   borderRadius: 10.0,
                   icon: Icon(Icons.save, color: kWhite),
                   color: kBgSuccess,
-                  onPressed:
-                      isChecked
-                          ? () {
-                            setState(() {
-                              SharedPreferencesHelper.savePrinterMAC(
-                                macController.text.toString(),
-                                true,
-                              );
+                  onPressed: isChecked
+                      ? () {
+                          setState(() {
+                            SharedPreferencesHelper.savePrinterMAC(
+                              macController.text.toString(),
+                              true,
+                            );
 
-                              Navigator.pop(context);
+                            Navigator.pop(context);
 
-                              Navigator.pushNamed(
-                                context,
-                                RouteManager.settingScreen,
-                                arguments: {'handHeldId': widget.handHeldId},
-                              );
+                            Navigator.pushNamed(
+                              context,
+                              RouteManager.settingScreen,
+                              arguments: {'handHeldId': widget.handHeldId},
+                            );
 
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    '${AppLocalizations.of(context)!.macAddress} ${AppLocalizations.of(context)!.saveDesc}',
-                                  ),
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '${AppLocalizations.of(context)!.macAddress} ${AppLocalizations.of(context)!.saveDesc}',
                                 ),
-                              );
-                            });
-                          }
-                          : null,
+                              ),
+                            );
+                          });
+                        }
+                      : null,
                   label: Text(
                     AppLocalizations.of(context)!.save,
                     style: textStyleNormal(color: kWhite),
@@ -191,6 +201,9 @@ class _PrinterFunctionState extends State<PrinterFunction> {
                 rawMac: macController.text.trim(),
                 handHeldId: widget.handHeldId,
                 userData: widget.userData,
+                compoundTotal: widget.compoundTotal,
+                compoundPendingTotal: widget.compoundPendingTotal,
+                countImage: widget.countImage,
               );
             });
           },

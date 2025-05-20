@@ -108,6 +108,7 @@ class _SplashScreenState extends State<SplashScreen> {
       Permission.locationWhenInUse,
       Permission.photos,
       Permission.storage,
+      Permission.manageExternalStorage,
     ].request();
   }
 

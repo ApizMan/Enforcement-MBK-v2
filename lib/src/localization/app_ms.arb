@@ -63,5 +63,8 @@
   "close": "Tutup",
   "noNewNotice": "Tiada Notis Baharu",
   "pendingDesc": "Menunggu Salinan Pendua",
-  "searching": "Mencari"
+  "searching": "Mencari",
+  "comingSoon": "Akan Datang",
+  "resubmit": "Hantar Semula",
+  "successUploaded": "Berjaya Dimuatnaik"
 }

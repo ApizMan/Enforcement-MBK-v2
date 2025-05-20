@@ -65,7 +65,13 @@ class PrintingDocument {
     }
   }
 
-  void drawStatusBox(Map<String, dynamic> userData, String handHeldId) {
+  void drawStatusBox({
+    required Map<String, dynamic> userData,
+    required String handHeldId,
+    required int compoundTotal,
+    required int compoundPendingTotal,
+    required int countImage,
+  }) {
     const int startX = 30;
     const int startY = 30;
     const int boxWidth = 550;
@@ -96,9 +102,9 @@ class PrintingDocument {
     drawRow("Handheld ID:", handHeldId);
     drawRow("Login ID:", userData['id'] ?? '-');
     drawRow("Name:", userData['name'] ?? '-');
-    drawRow("Total Notice:", "0");
-    drawRow("Not Yet Uploaded:", "0");
-    drawRow("Total Pictures:", "0");
+    drawRow("Total Notice:", compoundTotal.toString());
+    drawRow("Not Yet Uploaded:", compoundPendingTotal.toString());
+    drawRow("Total Pictures:", countImage.toString());
     drawRow("Total Transactions:", "0");
     drawRow("Total Amount:", "RM 0.00");
   }

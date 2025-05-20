@@ -10,11 +10,17 @@ class SettingBodyScreen extends StatelessWidget {
   final String handHeldId;
   final Map<String, dynamic> userData;
   final Map<String, dynamic> printerMAC;
+  final int countCompound;
+  final int countCompoundPending;
+  final int countImage;
   const SettingBodyScreen({
     super.key,
     required this.handHeldId,
     required this.userData,
     required this.printerMAC,
+    required this.countCompound,
+    required this.countCompoundPending,
+    required this.countImage,
   });
 
   @override
@@ -88,19 +94,19 @@ class SettingBodyScreen extends StatelessWidget {
                   AppLocalizations.of(context)!.totalAllNotice,
                   style: textStyleNormal(fontWeight: FontWeight.bold),
                 ),
-                Text('0'),
+                Text(countCompound.toString()),
                 spaceVertical(height: 10.0),
                 Text(
                   AppLocalizations.of(context)!.totalNoticeNotYetUpload,
                   style: textStyleNormal(fontWeight: FontWeight.bold),
                 ),
-                Text('0'),
+                Text(countCompoundPending.toString()),
                 spaceVertical(height: 10.0),
                 Text(
                   AppLocalizations.of(context)!.totalPicture,
                   style: textStyleNormal(fontWeight: FontWeight.bold),
                 ),
-                Text('0'),
+                Text(countImage.toString()),
                 spaceVertical(height: 10.0),
                 Text(
                   AppLocalizations.of(context)!.totalPayTransaction,
@@ -120,6 +126,9 @@ class SettingBodyScreen extends StatelessWidget {
             printerMAC: printerMAC,
             handHeldId: handHeldId,
             userData: userData,
+            compoundTotal: countCompound,
+            compoundPendingTotal: countCompoundPending,
+            countImage: countImage,
           ),
           spaceVertical(height: 20.0),
         ],

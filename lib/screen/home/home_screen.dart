@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:eo_apk_mbk_v2/controllers/home_controller.dart';
 import 'package:eo_apk_mbk_v2/form_blocs/form_bloc.dart';
@@ -16,6 +17,7 @@ import 'package:eo_apk_mbk_v2/widgets/loading_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 import 'package:eo_apk_mbk_v2/helpers/validation_form.dart';
 
@@ -160,9 +162,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 onFailure: (context, state) {
                   LoadingDialog.hide(context);
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(state.failureResponse!)),
-                  );
+                  if (state.failureResponse != null) {
+                    CustomDialog.show(
+                      context,
+                      dialogType: DialogType.danger,
+                      icon: Icons.warning,
+                      title: AppLocalizations.of(context)!.warning,
+                      description: state.failureResponse,
+                      btnOkText: AppLocalizations.of(context)!.ok,
+                      btnOkOnPress: () => Navigator.pop(context),
+                    );
+                  }
                 },
                 child:
                     FormBlocListener<CompoundParkingFormBloc, String, String>(
@@ -220,7 +230,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     setState(() {
                       _uploadCapturedImages(); // ✅ Only upload if form is valid
                     });
-                    Navigator.popAndPushNamed(context, RouteManager.homeScreen,
+                    Navigator.pushNamedAndRemoveUntil(
+                        context, RouteManager.homeScreen, (route) => false,
                         arguments: {
                           'userModel': userModel,
                           'unitModel': unitModel,
@@ -241,16 +252,106 @@ class _HomeScreenState extends State<HomeScreen> {
                   onFailure: (context, state) {
                     LoadingDialog.hide(context);
 
-                    if (state.failureResponse != null) {
-                      CustomDialog.show(
-                        context,
-                        dialogType: DialogType.danger,
-                        icon: Icons.warning,
-                        title: AppLocalizations.of(context)!.warning,
-                        description: state.failureResponse,
-                        btnOkText: AppLocalizations.of(context)!.ok,
-                        btnOkOnPress: () => Navigator.pop(context),
-                      );
+                    final failure = state.failureResponse;
+
+                    if (failure != null) {
+                      try {
+                        final decoded = jsonDecode(failure);
+                        final type = decoded['type'];
+                        final message = decoded['message'];
+
+                        switch (type) {
+                          case 'validation':
+                            CustomDialog.show(
+                              context,
+                              dialogType: DialogType.danger,
+                              icon: Icons.warning,
+                              title: AppLocalizations.of(context)!.warning,
+                              description: message,
+                              btnOkText: AppLocalizations.of(context)!.ok,
+                              btnOkOnPress: () => Navigator.pop(context),
+                            );
+                            break;
+
+                          case 'duplicate':
+                            CustomDialog.show(
+                              context,
+                              dialogType: DialogType.danger,
+                              icon: Icons.copy,
+                              title: "Salinan Duplikasi",
+                              description: message,
+                              btnOkText: "Faham",
+                              btnOkOnPress: () =>
+                                  Navigator.pushNamedAndRemoveUntil(context,
+                                      RouteManager.homeScreen, (route) => false,
+                                      arguments: {
+                                    'userModel': userModel,
+                                    'unitModel': unitModel,
+                                    'handHeldId': handHeldId,
+                                    'vehicleTypeModel': vehicleTypeModel,
+                                    'vehicleMakesModel': vehicleMakesModel,
+                                    'vehicleModelsModel': vehicleModelsModel,
+                                    'vehicleColorModel': vehicleColorModel,
+                                    'offenceActModel': offenceActModel,
+                                    'offenceSectionModel': offenceSectionModel,
+                                    'offenceAreaModel': offenceAreaModel,
+                                    'offenceLocationModel':
+                                        offenceLocationModel,
+                                  }),
+                            );
+                            break;
+
+                          case 'network':
+                            CustomDialog.show(
+                              context,
+                              dialogType: DialogType.danger,
+                              icon: Icons.cloud_off,
+                              title: "Ralat Internet",
+                              description: message,
+                              btnOkText: "OK",
+                              btnOkOnPress: () =>
+                                  Navigator.pushNamedAndRemoveUntil(context,
+                                      RouteManager.homeScreen, (route) => false,
+                                      arguments: {
+                                    'userModel': userModel,
+                                    'unitModel': unitModel,
+                                    'handHeldId': handHeldId,
+                                    'vehicleTypeModel': vehicleTypeModel,
+                                    'vehicleMakesModel': vehicleMakesModel,
+                                    'vehicleModelsModel': vehicleModelsModel,
+                                    'vehicleColorModel': vehicleColorModel,
+                                    'offenceActModel': offenceActModel,
+                                    'offenceSectionModel': offenceSectionModel,
+                                    'offenceAreaModel': offenceAreaModel,
+                                    'offenceLocationModel':
+                                        offenceLocationModel,
+                                  }),
+                            );
+                            break;
+
+                          default:
+                            CustomDialog.show(
+                              context,
+                              dialogType: DialogType.danger,
+                              icon: Icons.warning,
+                              title: AppLocalizations.of(context)!.warning,
+                              description: message,
+                              btnOkText: AppLocalizations.of(context)!.ok,
+                              btnOkOnPress: () => Navigator.pop(context),
+                            );
+                        }
+                      } catch (_) {
+                        // fallback if response is not JSON
+                        CustomDialog.show(
+                          context,
+                          dialogType: DialogType.danger,
+                          icon: Icons.warning,
+                          title: AppLocalizations.of(context)!.warning,
+                          description: failure,
+                          btnOkText: AppLocalizations.of(context)!.ok,
+                          btnOkOnPress: () => Navigator.pop(context),
+                        );
+                      }
                     }
                   },
                   child: FormBlocListener<CompoundAmFormBloc, String, String>(
@@ -342,8 +443,20 @@ class _HomeScreenState extends State<HomeScreen> {
     for (String? path in validPaths) {
       final file = File(path!);
       if (await file.exists()) {
-        final bytes = await file.readAsBytes();
-        final base64String = base64Encode(bytes);
+        // ✅ Compress image
+        final Uint8List? compressedBytes =
+            await FlutterImageCompress.compressWithFile(
+          file.path,
+          quality: 70, // You can adjust the quality (0-100)
+        );
+
+        if (compressedBytes == null) {
+          debugPrint('❌ Failed to compress $path');
+          continue;
+        }
+
+        // ✅ Encode to base64
+        final base64String = base64Encode(compressedBytes);
         final fileName = path.split('/').last;
 
         final response = await UploadResources.uploadImage(
@@ -368,7 +481,7 @@ class _HomeScreenState extends State<HomeScreen> {
           } else {
             debugPrint('❌ Failed to upload $fileName to EnYasin');
             debugPrint('Response: ${responseEnYasin['StatusDescription']}');
-            break; // Optional: Stop further uploads
+            break;
           }
         } else {
           debugPrint('❌ Failed to upload $fileName');

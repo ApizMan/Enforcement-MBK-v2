@@ -63,5 +63,8 @@
   "close": "Close",
   "noNewNotice": "No New Notices",
   "pendingDesc": "Pending Duplicate Copy",
-  "searching": "Searching"
+  "searching": "Searching",
+  "comingSoon": "Coming Soon",
+  "resubmit": "Re-Submit",
+  "successUploaded": "Successfully Uploaded"
 }

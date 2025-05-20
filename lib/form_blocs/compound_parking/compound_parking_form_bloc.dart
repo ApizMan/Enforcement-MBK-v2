@@ -1,9 +1,10 @@
 import 'dart:async';
-
+import 'dart:convert';
 import 'package:eo_apk_mbk_v2/form_blocs/form_bloc.dart';
 import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
 import 'package:eo_apk_mbk_v2/helpers/validators.dart';
 import 'package:eo_apk_mbk_v2/models/models.dart';
+import 'package:eo_apk_mbk_v2/resources/resources.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 
 class CompoundParkingFormBloc extends FormBloc<String, String> {
@@ -262,13 +263,16 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
     try {
       final officerData = await SharedPreferencesHelper.getLoginCredential();
       final officerMobile = await SharedPreferencesHelper.getHandheldId();
-
-      final serial = await SharedPreferencesHelper.getNoticeSerialNumber();
-      final paddedSerial = serial.toString().padLeft(5, '0');
-
       final compoundModel = OfficerCompoundModel();
 
-      compoundModel.officerId = officerData['name'];
+      // ✅ Get current serial and pad it
+      int serial = await SharedPreferencesHelper.getNoticeSerialNumber();
+      final paddedSerial = serial.toString().padLeft(5, '0');
+
+      // ✅ Generate notice number
+      compoundModel.noticeNo = '${officerMobile}25$paddedSerial';
+
+      compoundModel.officerId = officerData['id'];
       compoundModel.officerUnit = officerData['unit'];
       compoundModel.officerSaksi = officerData['witness'];
       compoundModel.handheldCode = officerMobile;
@@ -289,6 +293,13 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       compoundModel.imageName4 = imageName4.value;
 
       compoundModel.notes = notes.value;
+
+      // Get the compound amount (amount3)
+      final selectedSection = offenceSectionModel.firstWhere(
+          (s) => s.id == section.value!.id,
+          orElse: () => OffenceSectionModel());
+
+      compoundModel.compoundAmount = selectedSection.amount3 ?? 0;
 
       if (placement.value != null) {
         final isOtherPlacement = placement.value!.id == '__other_placement__';
@@ -338,7 +349,13 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       final validImages =
           imagePaths.where((path) => path != null && path.isNotEmpty).toList();
       if (validImages.length < 2) {
-        emitFailure(failureResponse: "Sila ambil sekurang-kurangnya 2 gambar.");
+        emitFailure(
+          failureResponse: jsonEncode({
+            'type': 'validation',
+            'message': 'Sila ambil sekurang-kurangnya 2 gambar.',
+          }),
+        );
+
         return;
       }
 
@@ -357,14 +374,86 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
         return;
       }
 
-      // Save Form inside SharedPreferences
-      await SharedPreferencesHelper.saveOfficerCompoundModel(compoundModel);
+      // Get Form Pending
+      final noticePending =
+          await SharedPreferencesHelper.getAllOfficerCompoundPendingModels();
 
-      await SharedPreferencesHelper.incrementNoticeSerialNumber();
+      final isDuplicate = noticePending.any(
+        (model) => model.noticeNo == compoundModel.noticeNo,
+      );
 
-      emitSuccess();
+      if (!isDuplicate) {
+        // Save Form Pending
+        await SharedPreferencesHelper.saveOfficerCompoundPendingModel(
+            compoundModel);
+
+        int incrementSerial = serial + 1;
+
+        // ✅ Immediately increment for next use
+        await SharedPreferencesHelper.setNoticeSerialNumber(incrementSerial);
+
+        await SharedPreferencesHelper.clearVerifyVehicleDesc();
+      } else {
+        emitFailure(
+          failureResponse: jsonEncode({
+            'type': 'duplicate',
+            'message': 'Please check duplicate copy for re-send back.',
+          }),
+        );
+      }
+
+      final responseEnforcementCCP =
+          await UploadResources.uploadCompoundToEnforcementCCP(
+              prefix: 'UploadNotice',
+              body: {
+            'NoticeNo': compoundModel.noticeNo.toString(),
+            'VehicleNo': compoundModel.vehicleNo.toString(),
+            'OfficerID': compoundModel.officerId.toString(),
+            'OfficerUnit': compoundModel.officerUnit.toString(),
+            'HandheldCode': compoundModel.handheldCode.toString(),
+            'OffenceDateString': compoundModel.offenceDateString.toString(),
+            'VehicleType': compoundModel.vehicleType.toString(),
+            'VehicleColor': compoundModel.vehicleColor.toString(),
+            'VehicleMakeModel': compoundModel.vehicleMakeModel.toString(),
+            'RoadTaxNo': compoundModel.roadTaxNo.toString(),
+            'OffenceSectionCode': compoundModel.offenceSectionCode.toString(),
+            'OffenceArea': compoundModel.offenceArea.toString(),
+            'OffenceLocation': compoundModel.offenceLocation.toString(),
+            'OffenceLocationDetails':
+                compoundModel.offenceLocationDetails.toString(),
+            'SquarePoleNo': compoundModel.squarePoleNo.toString(),
+            'ImageName1': compoundModel.imageName1.toString(),
+            'ImageName2': compoundModel.imageName2.toString(),
+            'ImageName3': compoundModel.imageName3.toString(),
+            'ImageName4': compoundModel.imageName4.toString(),
+            'ImageName5': compoundModel.imageName5.toString(),
+            'IsClamping': compoundModel.isClamping.toString(),
+            'Notes': compoundModel.notes.toString(),
+            'Latitude': compoundModel.latitude,
+            'Longitude': compoundModel.longitude,
+            'CompoundAmount': compoundModel.compoundAmount,
+            'OfficerSaksi': compoundModel.officerSaksi.toString(),
+          });
+
+      if (responseEnforcementCCP['StatusDescription'] == null) {
+        await SharedPreferencesHelper.saveOfficerCompoundModel(compoundModel);
+
+        await SharedPreferencesHelper.removeOfficerCompoundPendingByNoticeNo(
+            compoundModel.noticeNo!);
+
+        emitSuccess();
+      } else {
+        emitFailure(
+            failureResponse: responseEnforcementCCP['StatusDescription']);
+      }
     } catch (e) {
-      e.toString();
+      emitFailure(
+        failureResponse: jsonEncode({
+          'type': 'network',
+          'message':
+              'Please check your internet connection. Re-check Duplicate Copy is there any pending.',
+        }),
+      );
     }
   }
 }

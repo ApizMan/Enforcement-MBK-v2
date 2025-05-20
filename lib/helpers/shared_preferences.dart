@@ -104,19 +104,14 @@ class SharedPreferencesHelper {
   static Future<int> getNoticeSerialNumber() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Just get the current serial number, no date logic
-    return prefs.getInt(serialNumberKey) ?? 0;
+    // Ensure the serial starts from 1 instead of 0
+    int serial = prefs.getInt(serialNumberKey) ?? 0;
+    return serial == 0 ? 1 : serial;
   }
 
-  static Future<void> incrementNoticeSerialNumber() async {
+  static Future<void> setNoticeSerialNumber(int serial) async {
     final prefs = await SharedPreferences.getInstance();
-
-    final int current = prefs.getInt(serialNumberKey) ?? 0;
-    await prefs.setInt(serialNumberKey, current + 1);
-
-    // Optional: update the date, if you still want to store it
-    final String today = DateTime.now().toIso8601String().split('T').first;
-    await prefs.setString(serialDateKey, today);
+    await prefs.setInt(serialNumberKey, serial);
   }
 
   static Future<void> setCapturedImagePaths(List<String?> paths) async {
@@ -151,7 +146,61 @@ class SharedPreferencesHelper {
     return push!;
   }
 
-  // Save Form
+  // Save Form Pending
+  static Future<void> saveOfficerCompoundPendingModel(
+      OfficerCompoundModel model) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Retrieve existing list
+    List<String> jsonList =
+        prefs.getStringList(officerCompoundModelPendingKey) ?? [];
+
+    // Add new model
+    jsonList.add(jsonEncode(model.toJson()));
+
+    // Save updated list
+    await prefs.setStringList(officerCompoundModelPendingKey, jsonList);
+  }
+
+  // Get Form Pending
+  static Future<List<OfficerCompoundModel>>
+      getAllOfficerCompoundPendingModels() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    List<String> jsonList =
+        prefs.getStringList(officerCompoundModelPendingKey) ?? [];
+
+    return jsonList.map((jsonString) {
+      Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+      return OfficerCompoundModel.fromJson(jsonMap);
+    }).toList();
+  }
+
+  static Future<void> removeOfficerCompoundPendingByNoticeNo(
+      String noticeNo) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Retrieve existing list
+    List<String> jsonList =
+        prefs.getStringList(officerCompoundModelPendingKey) ?? [];
+
+    // Decode, filter, and re-encode the list
+    List<String> updatedList = jsonList.where((jsonString) {
+      final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+      return jsonMap['NoticeNo'] != noticeNo;
+    }).toList();
+
+    // Save the filtered list back
+    await prefs.setStringList(officerCompoundModelPendingKey, updatedList);
+  }
+
+  // Clear Form Pending
+  static Future<void> clearOfficerCompoundPendingModel() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(officerCompoundModelPendingKey);
+  }
+
+  // Save Form After Push to Server
   static Future<void> saveOfficerCompoundModel(
       OfficerCompoundModel model) async {
     final prefs = await SharedPreferences.getInstance();
@@ -166,7 +215,7 @@ class SharedPreferencesHelper {
     await prefs.setStringList(officerCompoundModelKey, jsonList);
   }
 
-  // Get Form
+  // Get Form After Push to Server
   static Future<List<OfficerCompoundModel>>
       getAllOfficerCompoundModels() async {
     final prefs = await SharedPreferences.getInstance();
@@ -179,9 +228,37 @@ class SharedPreferencesHelper {
     }).toList();
   }
 
-  // Clear Form
-  static Future<void> clearOfficerCompoundModel() async {
+  static Future<void> saveVerifyVehicleDesc(String verifyDesc) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString(verifyDescKey, verifyDesc);
+  }
+
+  static Future<String> getVerifyVehicleDesc() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String verifyDesc = prefs.getString(verifyDescKey) ?? '';
+
+    return verifyDesc;
+  }
+
+  static Future<void> clearVerifyVehicleDesc() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(officerCompoundModelKey);
+    await prefs.remove(verifyDescKey);
+  }
+
+  static Future<void> saveImageCount(int count) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setInt(imageCountKey, count);
+  }
+
+  static Future<int> getImageCount() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    int count = prefs.getInt(verifyDescKey) ?? 0;
+
+    return count;
+  }
+
+  static Future<void> clearImageCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(imageCountKey);
   }
 }
