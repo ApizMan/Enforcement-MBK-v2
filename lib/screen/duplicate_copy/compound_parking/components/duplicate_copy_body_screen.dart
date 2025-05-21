@@ -26,7 +26,6 @@ class DuplicateCopyBodyScreen extends StatefulWidget {
   final List<OffenceLocationModel> offenceLocationModel;
   final bool isLoading;
   final List<OfficerCompoundModel> compoundList;
-  final String searchText; // Add in constructor
   const DuplicateCopyBodyScreen({
     super.key,
     required this.dataSets,
@@ -43,7 +42,6 @@ class DuplicateCopyBodyScreen extends StatefulWidget {
     required this.vehicleTypeModel,
     required this.isLoading,
     required this.compoundList,
-    required this.searchText,
   });
 
   @override
@@ -52,6 +50,25 @@ class DuplicateCopyBodyScreen extends StatefulWidget {
 }
 
 class _DuplicateCopyBodyScreenState extends State<DuplicateCopyBodyScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchText = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchText = _searchController.text.trim().toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -66,13 +83,47 @@ class _DuplicateCopyBodyScreenState extends State<DuplicateCopyBodyScreen> {
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
                       child: Text(
-                        "Duplicate Copy",
+                        AppLocalizations.of(context)!.duplicateCopy,
                         style: textStyleNormal(fontStyle: FontStyle.italic),
                       ),
                     ),
                     const Expanded(child: Divider()),
                   ],
                 ),
+                widget.dataSets.isEmpty
+                    ? SizedBox.shrink()
+                    : Column(
+                        children: [
+                          spaceVertical(height: 10.0),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: TextField(
+                              controller: _searchController,
+                              keyboardType: TextInputType.text,
+                              decoration: InputDecoration(
+                                label: Text(
+                                    AppLocalizations.of(context)!.searching),
+                                prefixIcon: const Icon(Icons.search,
+                                    color: accentCanvasColor),
+                                hintText:
+                                    '${AppLocalizations.of(context)!.enter} ${AppLocalizations.of(context)!.noticeNo}',
+                                hintStyle:
+                                    const TextStyle(color: Colors.black26),
+                                border: OutlineInputBorder(
+                                  borderSide: const BorderSide(color: kBlack),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(color: kBlack),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                filled: true,
+                                fillColor: Colors.white.withOpacity(0.8),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                 spaceVertical(height: 10.0),
                 Expanded(
                   child: widget.dataSets.isEmpty
@@ -103,8 +154,8 @@ class _DuplicateCopyBodyScreenState extends State<DuplicateCopyBodyScreen> {
 
                             final noticeNo =
                                 getValue('Notice No').toLowerCase();
-                            if (widget.searchText.isNotEmpty &&
-                                !noticeNo.contains(widget.searchText)) {
+                            if (_searchText.isNotEmpty &&
+                                !noticeNo.contains(_searchText)) {
                               return const SizedBox.shrink();
                             }
 

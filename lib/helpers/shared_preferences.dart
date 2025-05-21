@@ -134,6 +134,55 @@ class SharedPreferencesHelper {
     await prefs.remove(captureImageCompoundKey);
   }
 
+  static Future<void> setCapturedImagePathsPending(
+      String noticeNo, List<String?> paths) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Get existing map
+    final rawMap = prefs.getString(captureImageCompoundPendingKey);
+    final Map<String, dynamic> jsonMap =
+        rawMap == null ? {} : jsonDecode(rawMap);
+
+    // Update paths for specific notice
+    jsonMap[noticeNo] = paths.map((e) => e ?? '').toList();
+
+    // Save updated map
+    await prefs.setString(captureImageCompoundPendingKey, jsonEncode(jsonMap));
+  }
+
+  static Future<List<String>> getCapturedImagePathsPending(
+      String noticeNo) async {
+    final prefs = await SharedPreferences.getInstance();
+    final rawMap = prefs.getString(captureImageCompoundPendingKey);
+
+    if (rawMap == null) return [];
+
+    final Map<String, dynamic> jsonMap = jsonDecode(rawMap);
+    final raw = jsonMap[noticeNo];
+
+    if (raw is List) {
+      return raw
+          .where((e) => e is String && e.isNotEmpty)
+          .map<String>((e) => e as String)
+          .toList();
+    }
+
+    return [];
+  }
+
+  static Future<void> clearCapturedImagePathsPending(String noticeNo) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final rawMap = prefs.getString(captureImageCompoundPendingKey);
+    if (rawMap == null) return;
+
+    final Map<String, dynamic> jsonMap = jsonDecode(rawMap);
+
+    jsonMap.remove(noticeNo);
+
+    await prefs.setString(captureImageCompoundPendingKey, jsonEncode(jsonMap));
+  }
+
   static Future<void> btnCheckPush({required bool push}) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setBool(btnCheckPushKey, push);
@@ -252,7 +301,7 @@ class SharedPreferencesHelper {
 
   static Future<int> getImageCount() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    int count = prefs.getInt(verifyDescKey) ?? 0;
+    int count = prefs.getInt(imageCountKey) ?? 0;
 
     return count;
   }

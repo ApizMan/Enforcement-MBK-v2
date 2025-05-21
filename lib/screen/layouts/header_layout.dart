@@ -17,6 +17,7 @@ class HeaderLayout extends StatelessWidget implements PreferredSizeWidget {
   final bool hideActionButton;
   final double bottomSize;
   final Widget? leading;
+  final List<Tab>? tabItems;
   const HeaderLayout({
     super.key,
     required this.title,
@@ -26,6 +27,7 @@ class HeaderLayout extends StatelessWidget implements PreferredSizeWidget {
     this.compoundAmFormBloc,
     this.compoundParkingFormBloc,
     this.leading,
+    this.tabItems,
   });
 
   @override
@@ -56,19 +58,13 @@ class HeaderLayout extends StatelessWidget implements PreferredSizeWidget {
                     child: Row(
                       children: [
                         Icon(Icons.edit_document, color: kBlack),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10.0),
-                          child: Text(
-                            AppLocalizations.of(context)!.compoundParking,
-                          ),
-                        ),
+                        const SizedBox(width: 10),
+                        Text(AppLocalizations.of(context)!.compoundParking),
                       ],
                     ),
                     onTap: () {
                       Future.delayed(Duration.zero, () {
-                        controller.setScreen(
-                          RouteManager.compoundParkingBody,
-                        );
+                        controller.setScreen(RouteManager.compoundParkingBody);
                       });
                     },
                   ),
@@ -77,31 +73,22 @@ class HeaderLayout extends StatelessWidget implements PreferredSizeWidget {
                     child: Row(
                       children: [
                         Icon(Icons.castle_rounded, color: kBlack),
-                        Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 10.0),
-                              child: Text(
-                                AppLocalizations.of(context)!.compoundAm,
-                              ),
+                        const SizedBox(width: 10),
+                        Text(AppLocalizations.of(context)!.compoundAm),
+                        const SizedBox(width: 20),
+                        Container(
+                          padding: const EdgeInsets.all(5.0),
+                          decoration: BoxDecoration(
+                            color: kGrey.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          child: Text(
+                            AppLocalizations.of(context)!.comingSoon,
+                            style: textStyleNormal(
+                              fontSize: 10.0,
+                              fontStyle: FontStyle.italic,
                             ),
-                            spaceHorizontal(width: 20.0),
-                            Container(
-                              decoration: BoxDecoration(
-                                  color: kGrey.withOpacity(0.5),
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(10.0))),
-                              child: Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: Text(
-                                  AppLocalizations.of(context)!.comingSoon,
-                                  style: textStyleNormal(
-                                      fontSize: 10.0,
-                                      fontStyle: FontStyle.italic),
-                                ),
-                              ),
-                            )
-                          ],
+                          ),
                         ),
                       ],
                     ),
@@ -120,30 +107,9 @@ class HeaderLayout extends StatelessWidget implements PreferredSizeWidget {
               child: Container(
                 color: kBackgroundColor,
                 child: TabBar(
-                  dividerColor: kBackgroundColor,
                   indicatorWeight: 3,
                   indicatorSize: TabBarIndicatorSize.tab,
-                  tabs: [
-                    Tab(
-                      icon: Icon(
-                        Icons.directions_car,
-                        color: accentCanvasColor,
-                      ),
-                    ),
-                    Tab(
-                      icon: Icon(
-                        Icons.warning_rounded,
-                        color: accentCanvasColor,
-                      ),
-                    ),
-                    Tab(
-                      icon: Icon(
-                        Icons.insert_drive_file_rounded,
-                        color: accentCanvasColor,
-                      ),
-                    ),
-                  ],
-                  onTap: (value) {},
+                  tabs: tabItems ?? const [],
                 ),
               ),
             )

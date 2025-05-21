@@ -387,6 +387,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         showTabBar: isCompoundParking,
                         compoundParkingFormBloc: compoundParkingFormBloc,
                         compoundAmFormBloc: compoundAmFormBloc,
+                        tabItems: [
+                          Tab(icon: Icon(Icons.directions_car)),
+                          Tab(icon: Icon(Icons.warning_rounded)),
+                          Tab(icon: Icon(Icons.insert_drive_file_rounded)),
+                        ],
                       ),
                       drawer: SidebarLayout(
                         userModel: userModel,

@@ -1,5 +1,8 @@
 // ignore_for_file: deprecated_member_use
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
 import 'package:eo_apk_mbk_v2/routes/route_manager.dart';
 import 'package:eo_apk_mbk_v2/widgets/primary_button.dart';
@@ -13,6 +16,7 @@ import 'package:eo_apk_mbk_v2/resources/resources.dart';
 import 'package:eo_apk_mbk_v2/widgets/custom_dialog.dart';
 import 'package:eo_apk_mbk_v2/widgets/loading_dialog.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_scale_tap/flutter_scale_tap.dart';
 
 class PendingDuplicateScreen extends StatefulWidget {
@@ -30,7 +34,6 @@ class PendingDuplicateScreen extends StatefulWidget {
   final List<OffenceLocationModel> offenceLocationModel;
   final bool isLoading;
   final CompoundResourcesSharedPreferences compoundHelper;
-  final String searchText; // Add in constructor
   const PendingDuplicateScreen({
     super.key,
     required this.dataSets,
@@ -47,7 +50,6 @@ class PendingDuplicateScreen extends StatefulWidget {
     required this.vehicleTypeModel,
     required this.isLoading,
     required this.compoundHelper,
-    required this.searchText,
   });
 
   @override
@@ -55,6 +57,101 @@ class PendingDuplicateScreen extends StatefulWidget {
 }
 
 class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchText = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchText = _searchController.text.trim().toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _uploadCapturedImages({required String noticeNo}) async {
+    final paths =
+        await SharedPreferencesHelper.getCapturedImagePathsPending(noticeNo);
+
+    // Filter non-null and non-empty paths
+    final validPaths = paths.where((path) => path.isNotEmpty).toList();
+
+    for (String? path in validPaths) {
+      try {
+        final file = File(path!);
+        if (!await file.exists()) {
+          debugPrint('❌ File not found: $path');
+          continue;
+        }
+
+        // ✅ Compress the image
+        final Uint8List? compressedBytes =
+            await FlutterImageCompress.compressWithFile(
+          file.path,
+          quality: 70,
+        );
+
+        if (compressedBytes == null) {
+          debugPrint('❌ Failed to compress image at $path');
+          continue;
+        }
+
+        // ✅ Encode to Base64
+        final base64String = base64Encode(compressedBytes);
+        final fileName = path.split('/').last;
+
+        // ✅ Upload to first server
+        final response = await UploadResources.uploadImage(
+          prefix: '/UploadImageString',
+          body: {
+            'ImageName': fileName,
+            'ImageData': base64String,
+          },
+        );
+
+        bool uploadedToFirst = response['StatusCode'] == 200 ||
+            response['StatusCode'] == '200' ||
+            response['StatusDescription'] == null;
+
+        if (!uploadedToFirst) {
+          debugPrint(
+              '❌ First upload failed for $fileName: ${response['StatusDescription']}');
+        } else {
+          debugPrint('✅ Uploaded $fileName to first server');
+        }
+
+        // ✅ Upload to second server if first failed or always (optional)
+        final responseEnYasin = await UploadResources.uploadImageEnYasin(
+          prefix: '/UploadImageString',
+          body: {
+            'ImageName': fileName,
+            'ImageData': base64String,
+          },
+        );
+
+        bool uploadedToSecond = responseEnYasin['StatusCode'] == 200 ||
+            responseEnYasin['StatusCode'] == '200' ||
+            responseEnYasin['StatusDescription'] == null;
+
+        if (!uploadedToSecond) {
+          debugPrint(
+              '❌ Second upload failed for $fileName: ${responseEnYasin['StatusDescription']}');
+        } else {
+          debugPrint('✅ Uploaded $fileName to EnYasin server');
+        }
+      } catch (e) {
+        debugPrint('❌ Error uploading image at $path: $e');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -69,13 +166,48 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
                       child: Text(
-                        "Pending Duplicate Copy",
+                        "${AppLocalizations.of(context)!.pending} ${AppLocalizations.of(context)!.duplicateCopy}",
                         style: textStyleNormal(fontStyle: FontStyle.italic),
                       ),
                     ),
                     const Expanded(child: Divider()),
                   ],
                 ),
+                widget.dataSets.isEmpty
+                    ? SizedBox.shrink()
+                    : Column(
+                        children: [
+                          spaceVertical(height: 10.0),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: TextField(
+                              controller: _searchController,
+                              keyboardType: TextInputType.text,
+                              decoration: InputDecoration(
+                                label: Text(
+                                    AppLocalizations.of(context)!.searching),
+                                prefixIcon: const Icon(Icons.search,
+                                    color: accentCanvasColor),
+                                hintText:
+                                    '${AppLocalizations.of(context)!.enter} ${AppLocalizations.of(context)!.noticeNo}',
+                                hintStyle:
+                                    const TextStyle(color: Colors.black26),
+                                border: OutlineInputBorder(
+                                  borderSide: const BorderSide(color: kBlack),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(color: kBlack),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                filled: true,
+                                fillColor: Colors.white.withOpacity(0.8),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                spaceVertical(height: 10.0),
                 widget.dataSets.isEmpty
                     ? SizedBox.shrink()
                     : Column(
@@ -92,6 +224,8 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                                       .getAllOfficerCompoundPendingModels();
 
                               for (var notice in noticePending) {
+                                await _uploadCapturedImages(
+                                    noticeNo: notice.noticeNo!);
                                 final responseEnforcementCCP =
                                     await UploadResources
                                         .uploadCompoundToEnforcementCCP(
@@ -152,6 +286,10 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
 
                                   await SharedPreferencesHelper
                                       .removeOfficerCompoundPendingByNoticeNo(
+                                          notice.noticeNo!);
+
+                                  await SharedPreferencesHelper
+                                      .clearCapturedImagePathsPending(
                                           notice.noticeNo!);
                                 } else {
                                   CustomDialog.show(
@@ -241,8 +379,8 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
 
                             final noticeNo =
                                 getValue('Notice No').toLowerCase();
-                            if (widget.searchText.isNotEmpty &&
-                                !noticeNo.contains(widget.searchText)) {
+                            if (_searchText.isNotEmpty &&
+                                !noticeNo.contains(_searchText)) {
                               return const SizedBox.shrink();
                             }
 

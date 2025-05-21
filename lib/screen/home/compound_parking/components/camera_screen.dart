@@ -119,7 +119,7 @@ class _CameraScreenState extends State<CameraScreen> {
     }
 
     final handheldCode = await SharedPreferencesHelper.getHandheldId();
-    final year = DateTime.now().year.toString();
+    final year = DateTime.now().year.toString().substring(2);
     final paddedSerial = (await SharedPreferencesHelper.getNoticeSerialNumber())
         .toString()
         .padLeft(5, '0');
@@ -144,6 +144,8 @@ class _CameraScreenState extends State<CameraScreen> {
         });
 
         await SharedPreferencesHelper.setCapturedImagePaths(savedImagePaths);
+        await SharedPreferencesHelper.setCapturedImagePathsPending(
+            '$handheldCode$year$paddedSerial', savedImagePaths);
 
         switch (imageIndex) {
           case 0:

@@ -49,6 +49,7 @@ const String tokenTMKey = 'tokenTMKey';
 const String serialNumberKey = 'serialNumberKey';
 const String serialDateKey = 'notice_serial_date';
 const String captureImageCompoundKey = 'captureImageCompoundKey';
+const String captureImageCompoundPendingKey = 'captureImageCompoundPendingKey';
 const String btnCheckPushKey = 'btnCheckPushKey';
 const String officerCompoundModelPendingKey = 'officerCompoundModelPendingKey';
 const String officerCompoundModelKey = 'officerCompoundModelKey';

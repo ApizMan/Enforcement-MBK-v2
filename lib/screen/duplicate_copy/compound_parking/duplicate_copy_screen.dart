@@ -32,24 +32,11 @@ class _DuplicateCopyParkingScreenState
   List<OffenceAreaModel> offenceAreaModel = [];
   List<OffenceLocationModel> offenceLocationModel = [];
 
-  TextEditingController _searchController = TextEditingController();
-  String _searchText = '';
-
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(() {
-      setState(() {
-        _searchText = _searchController.text.trim().toLowerCase();
-      });
-    });
-    _loadCompoundData();
-  }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+    _loadCompoundData();
   }
 
   Future<void> _loadCompoundData() async {
@@ -94,82 +81,75 @@ class _DuplicateCopyParkingScreenState
     final dataSetsPending = _compoundHelper.getDataSetsPending();
     final dataSets = _compoundHelper.getDataSets();
 
-    return Scaffold(
-      backgroundColor: kBackgroundColor,
-      appBar: HeaderLayout(
-        hideActionButton: true,
-        bottomSize: noBottomAppBarSize,
-        title: AppLocalizations.of(context)!.duplicateCopy,
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: kBackgroundColor,
+        appBar: HeaderLayout(
+          hideActionButton: true,
+          bottomSize: hasBottomAppBarSize,
+          title: AppLocalizations.of(context)!.duplicateCopy,
+          leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back),
+          ),
+          showTabBar: true,
+          tabItems: [
+            Tab(
+              text: AppLocalizations.of(context)!.duplicateCopy,
+            ),
+            Tab(
+              text: AppLocalizations.of(context)!.pending,
+            ),
+          ],
+        ),
+        body: TabBarView(
+          children: [
+            _duplicateBody(context, dataSets),
+            _pendingDuplicate(context, dataSetsPending),
+          ],
         ),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                label: Text(AppLocalizations.of(context)!.searching),
-                prefixIcon: const Icon(Icons.search, color: accentCanvasColor),
-                hintText:
-                    '${AppLocalizations.of(context)!.searching} ${AppLocalizations.of(context)!.noticeNo}',
-                hintStyle: const TextStyle(color: Colors.black26),
-                border: OutlineInputBorder(
-                  borderSide: const BorderSide(color: kBlack),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: kBlack),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.8),
-              ),
-            ),
-          ),
-          Expanded(
-            child: DuplicateCopyBodyScreen(
-              dataSets: dataSets,
-              userModel: userModel,
-              unitModel: unitModel,
-              handHeldId: handHeldId,
-              offenceActModel: offenceActModel,
-              offenceAreaModel: offenceAreaModel,
-              offenceLocationModel: offenceLocationModel,
-              offenceSectionModel: offenceSectionModel,
-              vehicleColorModel: vehicleColorModel,
-              vehicleMakesModel: vehicleMakesModel,
-              vehicleModelsModel: vehicleModelsModel,
-              vehicleTypeModel: vehicleTypeModel,
-              isLoading: _isLoading,
-              compoundList: _compoundHelper.compoundList,
-              searchText: _searchText,
-            ),
-          ),
-          Expanded(
-            child: PendingDuplicateScreen(
-              dataSets: dataSetsPending,
-              userModel: userModel,
-              unitModel: unitModel,
-              handHeldId: handHeldId,
-              offenceActModel: offenceActModel,
-              offenceAreaModel: offenceAreaModel,
-              offenceLocationModel: offenceLocationModel,
-              offenceSectionModel: offenceSectionModel,
-              vehicleColorModel: vehicleColorModel,
-              vehicleMakesModel: vehicleMakesModel,
-              vehicleModelsModel: vehicleModelsModel,
-              vehicleTypeModel: vehicleTypeModel,
-              isLoading: _isLoading,
-              compoundHelper: _compoundHelper,
-              searchText: _searchText,
-            ),
-          ),
-        ],
-      ),
+    );
+  }
+
+  Widget _duplicateBody(
+      BuildContext context, List<List<Map<String, String?>>> dataSets) {
+    return DuplicateCopyBodyScreen(
+      dataSets: dataSets,
+      userModel: userModel,
+      unitModel: unitModel,
+      handHeldId: handHeldId,
+      offenceActModel: offenceActModel,
+      offenceAreaModel: offenceAreaModel,
+      offenceLocationModel: offenceLocationModel,
+      offenceSectionModel: offenceSectionModel,
+      vehicleColorModel: vehicleColorModel,
+      vehicleMakesModel: vehicleMakesModel,
+      vehicleModelsModel: vehicleModelsModel,
+      vehicleTypeModel: vehicleTypeModel,
+      isLoading: _isLoading,
+      compoundList: _compoundHelper.compoundList,
+    );
+  }
+
+  Widget _pendingDuplicate(
+      BuildContext context, List<List<Map<String, String?>>> dataSetsPending) {
+    return PendingDuplicateScreen(
+      dataSets: dataSetsPending,
+      userModel: userModel,
+      unitModel: unitModel,
+      handHeldId: handHeldId,
+      offenceActModel: offenceActModel,
+      offenceAreaModel: offenceAreaModel,
+      offenceLocationModel: offenceLocationModel,
+      offenceSectionModel: offenceSectionModel,
+      vehicleColorModel: vehicleColorModel,
+      vehicleMakesModel: vehicleMakesModel,
+      vehicleModelsModel: vehicleModelsModel,
+      vehicleTypeModel: vehicleTypeModel,
+      isLoading: _isLoading,
+      compoundHelper: _compoundHelper,
     );
   }
 }

@@ -66,5 +66,6 @@
   "searching": "Searching",
   "comingSoon": "Coming Soon",
   "resubmit": "Re-Submit",
-  "successUploaded": "Successfully Uploaded"
+  "successUploaded": "Successfully Uploaded",
+  "pending": "Pending"
 }
