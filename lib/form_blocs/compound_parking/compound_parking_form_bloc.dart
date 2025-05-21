@@ -39,8 +39,11 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
 
   final otherBrand = TextFieldBloc();
   final otherModel = TextFieldBloc();
+  final otherColor = TextFieldBloc();
+
   final showOtherBrand = BooleanFieldBloc();
   final showOtherModel = BooleanFieldBloc();
+  final showOtherColor = BooleanFieldBloc();
 
   // Second Page
   final actLaw = SelectFieldBloc<OffenceActModel, dynamic>(
@@ -97,6 +100,11 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
     description: 'Lain-Lain',
   );
 
+  static final VehicleColorModel otherColorItem = VehicleColorModel(
+    id: '__other_color__',
+    description: 'Lain-Lain',
+  );
+
   CompoundParkingFormBloc({
     required this.vehicleTypeModel,
     required this.vehicleMakesModel,
@@ -110,7 +118,8 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
   }) {
     // --- First Page Setup ---
     type.updateItems(vehicleTypeModel);
-    color.updateItems(vehicleColorModel);
+    final updatedColors = [...vehicleColorModel, otherColorItem];
+    color.updateItems(updatedColors);
 
     final updatedMakes = [...vehicleMakesModel, otherMakeItem];
     brand.updateItems(updatedMakes);
@@ -176,6 +185,21 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       section.clear();
     });
 
+    color.stream.listen((value) {
+      final selectedColor = value.value;
+      showOtherColor.updateValue(selectedColor?.id == '__other_color__');
+    });
+
+    otherColor.stream.listen((value) {
+      final isFilled = value.value.trim().isNotEmpty;
+      if (isFilled) {
+        color.updateValue(otherColorItem);
+        showOtherColor.updateValue(true);
+      } else {
+        showOtherColor.updateValue(false);
+      }
+    });
+
     section.stream.listen((value) {
       final selectedSection = value.value;
       if (selectedSection != null) {
@@ -234,6 +258,8 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
         showOtherBrand,
         showOtherModel,
         color,
+        otherColor,
+        showOtherColor,
 
         // Second Page
         actLaw,
@@ -279,7 +305,13 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       compoundModel.vehicleNo = vehicleValidationFormBloc.plateNumber.value;
       compoundModel.roadTaxNo = taxNumber.value;
       compoundModel.vehicleType = type.value!.description;
-      compoundModel.vehicleColor = color.value!.description;
+      final isOtherColor = color.value!.id == '__other_color__';
+      final otherColorText = otherColor.value.trim();
+
+      compoundModel.vehicleColor = isOtherColor && otherColorText.isNotEmpty
+          ? 'Lain-Lain - $otherColorText'
+          : color.value!.description;
+
       compoundModel.squarePoleNo = squarePoleNo.value;
       compoundModel.noticeNo = '${officerMobile}25$paddedSerial';
       compoundModel.offenceSectionCode = section.value!.id;

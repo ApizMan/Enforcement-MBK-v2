@@ -155,8 +155,11 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
                     AppLocalizations.of(context)!.color,
                     widget.compoundParkingFormBloc?.type.value?.description ??
                         '',
-                    widget.compoundParkingFormBloc?.color.value?.description ??
-                        '',
+                    widget.compoundParkingFormBloc?.showOtherColor.value == true
+                        ? '${widget.compoundParkingFormBloc?.color.value?.description} - ${widget.compoundParkingFormBloc?.otherColor.value}'
+                        : widget.compoundParkingFormBloc?.color.value
+                                ?.description ??
+                            '',
                   ),
                   spaceVertical(height: 10.0),
                   Text(

@@ -411,6 +411,17 @@ class _HomeScreenState extends State<HomeScreen> {
                               compoundParkingFormBloc: compoundParkingFormBloc,
                               vehicleValidationFormBloc:
                                   vehicleValidationFormBloc,
+                              userModel: userModel,
+                              unitModel: unitModel,
+                              handHeldId: handHeldId,
+                              offenceActModel: offenceActModel,
+                              offenceAreaModel: offenceAreaModel,
+                              offenceLocationModel: offenceLocationModel,
+                              offenceSectionModel: offenceSectionModel,
+                              vehicleColorModel: vehicleColorModel,
+                              vehicleMakesModel: vehicleMakesModel,
+                              vehicleModelsModel: vehicleModelsModel,
+                              vehicleTypeModel: vehicleTypeModel,
                             )
                           : CompoundAmScreen(
                               compoundAmFormBloc: compoundAmFormBloc,
