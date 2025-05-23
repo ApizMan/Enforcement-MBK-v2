@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:eo_apk_mbk_v2/helpers/compound_print_format.dart';
 import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
 import 'package:eo_apk_mbk_v2/routes/route_manager.dart';
 import 'package:eo_apk_mbk_v2/widgets/primary_button.dart';
@@ -34,6 +35,7 @@ class PendingDuplicateScreen extends StatefulWidget {
   final List<OffenceLocationModel> offenceLocationModel;
   final bool isLoading;
   final CompoundResourcesSharedPreferences compoundHelper;
+  final Map<String, dynamic> printerMAC;
   const PendingDuplicateScreen({
     super.key,
     required this.dataSets,
@@ -50,6 +52,7 @@ class PendingDuplicateScreen extends StatefulWidget {
     required this.vehicleTypeModel,
     required this.isLoading,
     required this.compoundHelper,
+    required this.printerMAC,
   });
 
   @override
@@ -223,6 +226,8 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                                   await SharedPreferencesHelper
                                       .getAllOfficerCompoundPendingModels();
 
+                              LoadingDialog.show(context);
+
                               for (var notice in noticePending) {
                                 await _uploadCapturedImages(
                                     noticeNo: notice.noticeNo!);
@@ -305,6 +310,8 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                                   );
                                 }
                               }
+
+                              LoadingDialog.hide(context);
 
                               CustomDialog.show(
                                 context,
@@ -413,7 +420,29 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                                   ),
                                   btnOkText:
                                       AppLocalizations.of(context)!.print,
-                                  btnOkOnPress: () {},
+                                  btnOkOnPress: () async {
+                                    await CompoundPrintService
+                                        .connectAndPrintDuplicateCopy(
+                                      model: model,
+                                      rawMac: widget.printerMAC['printerMAC'],
+                                      handHeldId: widget.handHeldId,
+                                      userModel: widget.userModel,
+                                      unitModel: widget.unitModel,
+                                      offenceActModel: widget.offenceActModel,
+                                      offenceAreaModel: widget.offenceAreaModel,
+                                      offenceLocationModel:
+                                          widget.offenceLocationModel,
+                                      offenceSectionModel:
+                                          widget.offenceSectionModel,
+                                      vehicleColorModel:
+                                          widget.vehicleColorModel,
+                                      vehicleMakesModel:
+                                          widget.vehicleMakesModel,
+                                      vehicleModelsModel:
+                                          widget.vehicleModelsModel,
+                                      vehicleTypeModel: widget.vehicleTypeModel,
+                                    );
+                                  },
                                   btnCancelText:
                                       AppLocalizations.of(context)!.close,
                                   btnCancelOnPress: () {

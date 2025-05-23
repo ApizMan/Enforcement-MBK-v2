@@ -99,6 +99,7 @@ class _CameraScreenState extends State<CameraScreen> {
     final File previewFile = File(pickedFile.path);
     final bool? confirm = await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: const Text('Confirm photo?'),
         content: Image.file(previewFile),

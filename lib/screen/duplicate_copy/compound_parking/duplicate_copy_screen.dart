@@ -1,7 +1,9 @@
 import 'package:eo_apk_mbk_v2/helpers/constant.dart';
+import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
 import 'package:eo_apk_mbk_v2/models/models.dart';
 import 'package:eo_apk_mbk_v2/resources/resources.dart';
 import 'package:eo_apk_mbk_v2/screen/screen.dart';
+import 'package:eo_apk_mbk_v2/widgets/loading_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -31,11 +33,12 @@ class _DuplicateCopyParkingScreenState
   List<OffenceSectionModel> offenceSectionModel = [];
   List<OffenceAreaModel> offenceAreaModel = [];
   List<OffenceLocationModel> offenceLocationModel = [];
+  Map<String, dynamic>? printerMAC;
 
   @override
   void initState() {
     super.initState();
-
+    _getFromSharedPreference();
     _loadCompoundData();
   }
 
@@ -43,6 +46,13 @@ class _DuplicateCopyParkingScreenState
     await _compoundHelper.getCompoundParkingData();
     setState(() {
       _isLoading = false;
+    });
+  }
+
+  Future<void> _getFromSharedPreference() async {
+    final mac = await SharedPreferencesHelper.getPrinterMAC();
+    setState(() {
+      printerMAC = mac;
     });
   }
 
@@ -80,6 +90,10 @@ class _DuplicateCopyParkingScreenState
   Widget build(BuildContext context) {
     final dataSetsPending = _compoundHelper.getDataSetsPending();
     final dataSets = _compoundHelper.getDataSets();
+
+    if (printerMAC == null) {
+      return const LoadingDialog();
+    }
 
     return DefaultTabController(
       length: 2,
@@ -130,6 +144,7 @@ class _DuplicateCopyParkingScreenState
       vehicleTypeModel: vehicleTypeModel,
       isLoading: _isLoading,
       compoundList: _compoundHelper.compoundList,
+      printerMAC: printerMAC!,
     );
   }
 
@@ -150,6 +165,7 @@ class _DuplicateCopyParkingScreenState
       vehicleTypeModel: vehicleTypeModel,
       isLoading: _isLoading,
       compoundHelper: _compoundHelper,
+      printerMAC: printerMAC!,
     );
   }
 }

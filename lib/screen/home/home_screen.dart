@@ -126,6 +126,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 offenceAreaModel: offenceAreaModel,
                 offenceLocationModel: offenceLocationModel,
                 vehicleValidationFormBloc: vehicleValidationFormBloc!,
+                unitModel: unitModel,
+                userModel: userModel,
               ),
             ),
             BlocProvider<CompoundAmFormBloc>(
@@ -326,6 +328,52 @@ class _HomeScreenState extends State<HomeScreen> {
                                     'offenceLocationModel':
                                         offenceLocationModel,
                                   }),
+                            );
+                            break;
+
+                          case 'print':
+                            CustomDialog.show(
+                              context,
+                              dialogType: DialogType.danger,
+                              icon: Icons.print,
+                              title: "Ralat Cetak",
+                              description: message,
+                              btnOkText: "OK",
+                              btnOkOnPress: () =>
+                                  Navigator.pushNamedAndRemoveUntil(context,
+                                      RouteManager.homeScreen, (route) => false,
+                                      arguments: {
+                                    'userModel': userModel,
+                                    'unitModel': unitModel,
+                                    'handHeldId': handHeldId,
+                                    'vehicleTypeModel': vehicleTypeModel,
+                                    'vehicleMakesModel': vehicleMakesModel,
+                                    'vehicleModelsModel': vehicleModelsModel,
+                                    'vehicleColorModel': vehicleColorModel,
+                                    'offenceActModel': offenceActModel,
+                                    'offenceSectionModel': offenceSectionModel,
+                                    'offenceAreaModel': offenceAreaModel,
+                                    'offenceLocationModel':
+                                        offenceLocationModel,
+                                  }),
+                            );
+                            break;
+
+                          case 'connectionPrinter':
+                            CustomDialog.show(
+                              context,
+                              dialogType: DialogType.danger,
+                              icon: Icons.print,
+                              title: "Ralat Printer",
+                              description: message,
+                              btnOkText: "OK",
+                              btnOkOnPress: () => Navigator.popAndPushNamed(
+                                context,
+                                RouteManager.settingScreen,
+                                arguments: {
+                                  'handHeldId': handHeldId,
+                                },
+                              ),
                             );
                             break;
 

@@ -29,6 +29,14 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     _startInitialization();
+    _resetCompoundAndImage();
+  }
+
+  Future<void> _resetCompoundAndImage() async {
+    // Clear Compound if not today
+    await SharedPreferencesHelper.clearOldOfficerCompoundModelsIfNotToday();
+    await SharedPreferencesHelper
+        .clearOldOfficerCompoundModelsPendingIfNotToday();
   }
 
   Future<void> _startInitialization() async {

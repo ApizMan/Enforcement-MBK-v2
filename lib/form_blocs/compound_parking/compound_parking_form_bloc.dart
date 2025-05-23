@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:eo_apk_mbk_v2/form_blocs/form_bloc.dart';
+import 'package:eo_apk_mbk_v2/helpers/compound_print_format.dart';
 import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
 import 'package:eo_apk_mbk_v2/helpers/validators.dart';
 import 'package:eo_apk_mbk_v2/models/models.dart';
@@ -17,6 +18,8 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
   final List<OffenceAreaModel> offenceAreaModel;
   final List<OffenceLocationModel> offenceLocationModel;
   final VehicleValidationFormBloc vehicleValidationFormBloc;
+  final List<UserModel> userModel;
+  final List<OfficerUnitModel> unitModel;
 
   // First Page
   final taxNumber = TextFieldBloc();
@@ -115,6 +118,8 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
     required this.offenceAreaModel,
     required this.offenceLocationModel,
     required this.vehicleValidationFormBloc,
+    required this.userModel,
+    required this.unitModel,
   }) {
     // --- First Page Setup ---
     type.updateItems(vehicleTypeModel);
@@ -326,118 +331,157 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
 
       compoundModel.notes = notes.value;
 
-      // Get the compound amount (amount3)
-      final selectedSection = offenceSectionModel.firstWhere(
-          (s) => s.id == section.value!.id,
-          orElse: () => OffenceSectionModel());
+      final mac = await SharedPreferencesHelper.getPrinterMAC();
+      final handheldId = await SharedPreferencesHelper.getHandheldId();
 
-      compoundModel.compoundAmount = selectedSection.amount3 ?? 0;
+      if (mac['isMACSave'] == false) {
+        emitFailure(
+          failureResponse: jsonEncode({
+            'type': 'connectionPrinter',
+            'message': 'Please setting the printer first.',
+          }),
+        );
+      } else {
+        // Get the compound amount (amount3)
+        final selectedSection = offenceSectionModel.firstWhere(
+            (s) => s.id == section.value!.id,
+            orElse: () => OffenceSectionModel());
 
-      if (placement.value != null) {
+        compoundModel.compoundAmount = selectedSection.amount3 ?? 0;
+
+        if (placement.value != null) {
+          final isOtherPlacement = placement.value!.id == '__other_placement__';
+          final otherPlacementText = otherPlacement.value.trim();
+
+          if (isOtherPlacement && otherPlacementText.isNotEmpty) {
+            compoundModel.offenceLocation = 'Lain-Lain - $otherPlacementText';
+          } else {
+            compoundModel.offenceLocation = placement.value!.description;
+          }
+        } else {
+          compoundModel.offenceLocation = null;
+        }
+
+        compoundModel.offenceLocationDetails = locationDetail.value;
+
+        if (vehicleClamping.value == 'Ya') {
+          compoundModel.isClamping = true;
+        } else {
+          compoundModel.isClamping = false;
+        }
+
+        if (brand.value != null && model.value != null) {
+          final isOtherBrand = brand.value!.id == '__other_make__';
+          final isOtherModel = model.value!.id == '__other_model__';
+
+          final otherBrandText = otherBrand.value.trim();
+          final otherModelText = otherModel.value.trim();
+
+          if (isOtherBrand && isOtherModel) {
+            compoundModel.vehicleMakeModel =
+                'Lain-Lain - $otherBrandText - $otherModelText';
+          } else if (isOtherBrand) {
+            compoundModel.vehicleMakeModel =
+                'Lain-Lain - $otherBrandText - ${model.value!.description}';
+          } else if (isOtherModel) {
+            compoundModel.vehicleMakeModel =
+                '${brand.value!.description} - Lain-Lain - $otherModelText';
+          } else {
+            compoundModel.vehicleMakeModel =
+                '${brand.value!.description} - ${model.value!.description}';
+          }
+        }
+
+        // 🚨 Validate vehicle image
+        final imagePaths =
+            await SharedPreferencesHelper.getCapturedImagePaths();
+        final validImages = imagePaths
+            .where((path) => path != null && path.isNotEmpty)
+            .toList();
+        if (validImages.length < 2) {
+          emitFailure(
+            failureResponse: jsonEncode({
+              'type': 'validation',
+              'message': 'Sila ambil sekurang-kurangnya 2 gambar.',
+            }),
+          );
+
+          return;
+        }
+
+        // 🚨 Validate placement
+        if (placement.value == null) {
+          emitFailure(failureResponse: "Sila Pilih Nama Jalan.");
+          return;
+        }
+
+        // 🚨 If placement is 'Lain-Lain', validate otherPlacement
         final isOtherPlacement = placement.value!.id == '__other_placement__';
         final otherPlacementText = otherPlacement.value.trim();
 
-        if (isOtherPlacement && otherPlacementText.isNotEmpty) {
-          compoundModel.offenceLocation = 'Lain-Lain - $otherPlacementText';
-        } else {
-          compoundModel.offenceLocation = placement.value!.description;
+        if (isOtherPlacement && otherPlacementText.isEmpty) {
+          emitFailure(failureResponse: "Sila Pilih Nama Jalan.");
+          return;
         }
-      } else {
-        compoundModel.offenceLocation = null;
-      }
 
-      compoundModel.offenceLocationDetails = locationDetail.value;
+        // Get Form Pending
+        final noticePending =
+            await SharedPreferencesHelper.getAllOfficerCompoundPendingModels();
 
-      if (vehicleClamping.value == 'Ya') {
-        compoundModel.isClamping = true;
-      } else {
-        compoundModel.isClamping = false;
-      }
-
-      if (brand.value != null && model.value != null) {
-        final isOtherBrand = brand.value!.id == '__other_make__';
-        final isOtherModel = model.value!.id == '__other_model__';
-
-        final otherBrandText = otherBrand.value.trim();
-        final otherModelText = otherModel.value.trim();
-
-        if (isOtherBrand && isOtherModel) {
-          compoundModel.vehicleMakeModel =
-              'Lain-Lain - $otherBrandText - $otherModelText';
-        } else if (isOtherBrand) {
-          compoundModel.vehicleMakeModel =
-              'Lain-Lain - $otherBrandText - ${model.value!.description}';
-        } else if (isOtherModel) {
-          compoundModel.vehicleMakeModel =
-              '${brand.value!.description} - Lain-Lain - $otherModelText';
-        } else {
-          compoundModel.vehicleMakeModel =
-              '${brand.value!.description} - ${model.value!.description}';
-        }
-      }
-
-      // 🚨 Validate vehicle image
-      final imagePaths = await SharedPreferencesHelper.getCapturedImagePaths();
-      final validImages =
-          imagePaths.where((path) => path != null && path.isNotEmpty).toList();
-      if (validImages.length < 2) {
-        emitFailure(
-          failureResponse: jsonEncode({
-            'type': 'validation',
-            'message': 'Sila ambil sekurang-kurangnya 2 gambar.',
-          }),
+        final isDuplicate = noticePending.any(
+          (model) => model.noticeNo == compoundModel.noticeNo,
         );
 
-        return;
-      }
+        if (isDuplicate) {
+          emitFailure(
+            failureResponse: jsonEncode({
+              'type': 'duplicate',
+              'message': 'Please check duplicate copy for re-send back.',
+            }),
+          );
+          return; // Prevent continuing
+        }
 
-      // 🚨 Validate placement
-      if (placement.value == null) {
-        emitFailure(failureResponse: "Sila Pilih Nama Jalan.");
-        return;
-      }
-
-      // 🚨 If placement is 'Lain-Lain', validate otherPlacement
-      final isOtherPlacement = placement.value!.id == '__other_placement__';
-      final otherPlacementText = otherPlacement.value.trim();
-
-      if (isOtherPlacement && otherPlacementText.isEmpty) {
-        emitFailure(failureResponse: "Sila Pilih Nama Jalan.");
-        return;
-      }
-
-      // Get Form Pending
-      final noticePending =
-          await SharedPreferencesHelper.getAllOfficerCompoundPendingModels();
-
-      final isDuplicate = noticePending.any(
-        (model) => model.noticeNo == compoundModel.noticeNo,
-      );
-
-      if (!isDuplicate) {
         // Save Form Pending
         await SharedPreferencesHelper.saveOfficerCompoundPendingModel(
             compoundModel);
 
         int incrementSerial = serial + 1;
-
-        // ✅ Immediately increment for next use
         await SharedPreferencesHelper.setNoticeSerialNumber(incrementSerial);
-
         await SharedPreferencesHelper.clearVerifyVehicleDesc();
-      } else {
-        emitFailure(
-          failureResponse: jsonEncode({
-            'type': 'duplicate',
-            'message': 'Please check duplicate copy for re-send back.',
-          }),
-        );
-      }
 
-      final responseEnforcementCCP =
-          await UploadResources.uploadCompoundToEnforcementCCP(
-              prefix: 'UploadNotice',
-              body: {
+        // ✅ Proceed to print
+        final printSuccess = await CompoundPrintService.connectAndPrint(
+          model: compoundModel,
+          rawMac: mac['printerMAC'],
+          handHeldId: handheldId,
+          userModel: userModel,
+          unitModel: unitModel,
+          offenceActModel: offenceActModel,
+          offenceAreaModel: offenceAreaModel,
+          offenceLocationModel: offenceLocationModel,
+          offenceSectionModel: offenceSectionModel,
+          vehicleColorModel: vehicleColorModel,
+          vehicleMakesModel: vehicleMakesModel,
+          vehicleModelsModel: vehicleModelsModel,
+          vehicleTypeModel: vehicleTypeModel,
+        );
+
+        if (!printSuccess) {
+          emitFailure(
+            failureResponse: jsonEncode({
+              'type': 'print',
+              'message': 'Printing failed. Please try again.',
+            }),
+          );
+          return;
+        }
+
+        // ✅ Continue to upload
+        final responseEnforcementCCP =
+            await UploadResources.uploadCompoundToEnforcementCCP(
+          prefix: 'UploadNotice',
+          body: {
             'NoticeNo': compoundModel.noticeNo.toString(),
             'VehicleNo': compoundModel.vehicleNo.toString(),
             'OfficerID': compoundModel.officerId.toString(),
@@ -465,18 +509,18 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
             'Longitude': compoundModel.longitude,
             'CompoundAmount': compoundModel.compoundAmount,
             'OfficerSaksi': compoundModel.officerSaksi.toString(),
-          });
+          },
+        );
 
-      if (responseEnforcementCCP['StatusDescription'] == null) {
-        await SharedPreferencesHelper.saveOfficerCompoundModel(compoundModel);
-
-        await SharedPreferencesHelper.removeOfficerCompoundPendingByNoticeNo(
-            compoundModel.noticeNo!);
-
-        emitSuccess();
-      } else {
-        emitFailure(
-            failureResponse: responseEnforcementCCP['StatusDescription']);
+        if (responseEnforcementCCP['StatusDescription'] == null) {
+          await SharedPreferencesHelper.saveOfficerCompoundModel(compoundModel);
+          await SharedPreferencesHelper.removeOfficerCompoundPendingByNoticeNo(
+              compoundModel.noticeNo!);
+          emitSuccess(); // 🎉 SUCCESS finally happens here
+        } else {
+          emitFailure(
+              failureResponse: responseEnforcementCCP['StatusDescription']);
+        }
       }
     } catch (e) {
       emitFailure(

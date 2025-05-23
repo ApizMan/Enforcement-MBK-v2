@@ -1,7 +1,9 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:eo_apk_mbk_v2/form_blocs/form_bloc.dart';
 import 'package:eo_apk_mbk_v2/helpers/constant.dart';
+import 'package:eo_apk_mbk_v2/helpers/theme.dart';
 import 'package:eo_apk_mbk_v2/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
@@ -10,10 +12,32 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class ActFaultScreen extends StatelessWidget {
   final VehicleValidationFormBloc? vehicleValidationFormBloc;
   final CompoundParkingFormBloc? compoundParkingFormBloc;
+  final List<UserModel> userModel;
+  final List<OfficerUnitModel> unitModel;
+  final String handHeldId;
+  final List<VehicleTypeModel> vehicleTypeModel;
+  final List<VehicleBrandModel> vehicleMakesModel;
+  final List<VehicleModelsModel> vehicleModelsModel;
+  final List<VehicleColorModel> vehicleColorModel;
+  final List<OffenceActModel> offenceActModel;
+  final List<OffenceSectionModel> offenceSectionModel;
+  final List<OffenceAreaModel> offenceAreaModel;
+  final List<OffenceLocationModel> offenceLocationModel;
   const ActFaultScreen({
     super.key,
     this.vehicleValidationFormBloc,
     this.compoundParkingFormBloc,
+    required this.unitModel,
+    required this.userModel,
+    required this.handHeldId,
+    required this.offenceActModel,
+    required this.offenceAreaModel,
+    required this.offenceLocationModel,
+    required this.offenceSectionModel,
+    required this.vehicleColorModel,
+    required this.vehicleMakesModel,
+    required this.vehicleModelsModel,
+    required this.vehicleTypeModel,
   });
 
   @override
@@ -23,67 +47,116 @@ class ActFaultScreen extends StatelessWidget {
         padding: const EdgeInsets.all(10.0),
         child: Column(
           children: [
-            DropdownFieldBlocBuilder<OffenceActModel?>(
-              showEmptyItem: false,
-              selectFieldBloc: compoundParkingFormBloc!.actLaw,
-              decoration: InputDecoration(
-                label: Text(AppLocalizations.of(context)!.legalProvisions),
-                prefixIcon: const Icon(
-                  Icons.account_balance_rounded,
-                  color: accentCanvasColor,
-                ),
-                border: OutlineInputBorder(
-                  borderSide: const BorderSide(color: kBlack),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: kBlack),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.8),
-              ),
-              itemBuilder: (context, value) {
-                return FieldItem(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Text(value?.description ?? 'Unknown'),
+            BlocBuilder<SelectFieldBloc<OffenceActModel?, dynamic>,
+                SelectFieldBlocState<OffenceActModel?, dynamic>>(
+              bloc: compoundParkingFormBloc!.actLaw,
+              builder: (context, state) {
+                return DropdownSearch<OffenceActModel>(
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                    searchDelay: Duration.zero,
+                    itemBuilder: (context, item, isSelected) => ListTile(
+                      title: Text(item.description ?? 'Unknown'),
+                    ),
+                    showSelectedItems: true,
                   ),
+                  items: compoundParkingFormBloc!.actLaw.state.items,
+                  selectedItem: state.value,
+                  compareFn: (a, b) => a.id == b.id,
+                  itemAsString: (item) => item.description ?? '',
+                  dropdownDecoratorProps: DropDownDecoratorProps(
+                    dropdownSearchDecoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.legalProvisions,
+                      prefixIcon: const Icon(
+                        Icons.account_balance_rounded,
+                        color: accentCanvasColor,
+                      ),
+                      border: OutlineInputBorder(
+                        borderSide: const BorderSide(color: kBlack),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: kBlack),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    compoundParkingFormBloc!.actLaw.updateValue(value);
+                  },
+                  filterFn: (item, filter) {
+                    return item.description
+                            ?.toLowerCase()
+                            .contains(filter.toLowerCase()) ??
+                        false;
+                  },
                 );
               },
             ),
 
-            DropdownFieldBlocBuilder<OffenceSectionModel?>(
-              showEmptyItem: false,
-              selectFieldBloc: compoundParkingFormBloc!.section,
-              decoration: InputDecoration(
-                label: Text(
-                  AppLocalizations.of(context)!.sectionOrOrderOrMethod,
-                ),
-                prefixIcon: const Icon(
-                  Icons.account_box_rounded,
-                  color: accentCanvasColor,
-                ),
-                border: OutlineInputBorder(
-                  borderSide: const BorderSide(color: kBlack),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: kBlack),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.8),
-              ),
-              itemBuilder: (context, value) {
-                return FieldItem(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Text(value?.sectionNo ?? 'Unknown'),
+            spaceVertical(height: 10.0),
+
+            BlocBuilder<SelectFieldBloc<OffenceSectionModel?, dynamic>,
+                SelectFieldBlocState<OffenceSectionModel?, dynamic>>(
+              bloc: compoundParkingFormBloc!.section,
+              builder: (context, state) {
+                return DropdownSearch<OffenceSectionModel>(
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                    searchDelay: Duration.zero,
+                    itemBuilder: (context, item, isSelected) => ListTile(
+                      title: Text(item.subsectionNo != null
+                          ? 'PERINTAH ${item.sectionNo}${item.subsectionNo}'
+                          : 'PERINTAH ${item.sectionNo}'),
+                    ),
+                    showSelectedItems: true,
                   ),
+                  items: compoundParkingFormBloc!.section.state.items,
+                  selectedItem: state.value,
+                  compareFn: (a, b) => a.id == b.id,
+                  itemAsString: (item) => item.subsectionNo != null
+                      ? '${item.sectionNo}${item.subsectionNo}'
+                      : item.sectionNo ?? '',
+                  dropdownDecoratorProps: DropDownDecoratorProps(
+                    dropdownSearchDecoration: InputDecoration(
+                      labelText:
+                          AppLocalizations.of(context)!.sectionOrOrderOrMethod,
+                      prefixIcon: const Icon(
+                        Icons.account_box_rounded,
+                        color: accentCanvasColor,
+                      ),
+                      border: OutlineInputBorder(
+                        borderSide: const BorderSide(color: kBlack),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: kBlack),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    compoundParkingFormBloc!.section.updateValue(value);
+                  },
+                  filterFn: (item, filter) {
+                    final section = item.sectionNo ?? '';
+                    final subsection = item.subsectionNo ?? '';
+                    final combined = subsection.isNotEmpty
+                        ? 'PERINTAH $section$subsection'
+                        : 'PERINTAH $section';
+                    return combined
+                        .toLowerCase()
+                        .contains(filter.toLowerCase());
+                  },
                 );
               },
             ),
+
+            spaceVertical(height: 10.0),
 
             BlocBuilder<SelectFieldBloc<OffenceSectionModel, dynamic>,
                 SelectFieldBlocState<OffenceSectionModel, dynamic>>(
@@ -122,62 +195,109 @@ class ActFaultScreen extends StatelessWidget {
               },
             ),
 
-            DropdownFieldBlocBuilder<OffenceAreaModel?>(
-              showEmptyItem: false,
-              selectFieldBloc: compoundParkingFormBloc!.area,
-              decoration: InputDecoration(
-                label: Text(AppLocalizations.of(context)!.zone),
-                prefixIcon: const Icon(Icons.flag, color: accentCanvasColor),
-                border: OutlineInputBorder(
-                  borderSide: const BorderSide(color: kBlack),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: kBlack),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.8),
-              ),
-              itemBuilder: (context, value) {
-                return FieldItem(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Text(value?.description ?? 'Unknown'),
+            spaceVertical(height: 10.0),
+
+            BlocBuilder<SelectFieldBloc<OffenceAreaModel?, dynamic>,
+                SelectFieldBlocState<OffenceAreaModel?, dynamic>>(
+              bloc: compoundParkingFormBloc!.area,
+              builder: (context, state) {
+                return DropdownSearch<OffenceAreaModel>(
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                    searchDelay: Duration.zero,
+                    itemBuilder: (context, item, isSelected) => ListTile(
+                      title: Text(item.description ?? 'Unknown'),
+                    ),
+                    showSelectedItems: true,
                   ),
+                  items: compoundParkingFormBloc!.area.state.items,
+                  selectedItem: state.value,
+                  compareFn: (a, b) => a.id == b.id,
+                  itemAsString: (item) => item.description ?? '',
+                  dropdownDecoratorProps: DropDownDecoratorProps(
+                    dropdownSearchDecoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.zone,
+                      prefixIcon: const Icon(
+                        Icons.flag,
+                        color: accentCanvasColor,
+                      ),
+                      border: OutlineInputBorder(
+                        borderSide: const BorderSide(color: kBlack),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: kBlack),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    compoundParkingFormBloc!.area.updateValue(value);
+                  },
+                  filterFn: (item, filter) {
+                    return item.description
+                            ?.toLowerCase()
+                            .contains(filter.toLowerCase()) ??
+                        false;
+                  },
                 );
               },
             ),
 
-            DropdownFieldBlocBuilder<OffenceLocationModel?>(
-              showEmptyItem: false,
-              selectFieldBloc: compoundParkingFormBloc!.placement,
-              decoration: InputDecoration(
-                label: Text(AppLocalizations.of(context)!.placement),
-                prefixIcon: const Icon(
-                  Icons.location_on,
-                  color: accentCanvasColor,
-                ),
-                border: OutlineInputBorder(
-                  borderSide: const BorderSide(color: kBlack),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: kBlack),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.8),
-              ),
-              itemBuilder: (context, value) {
-                return FieldItem(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Text(value?.description ?? 'Unknown'),
+            spaceVertical(height: 15.0),
+
+            BlocBuilder<SelectFieldBloc<OffenceLocationModel?, dynamic>,
+                SelectFieldBlocState<OffenceLocationModel?, dynamic>>(
+              bloc: compoundParkingFormBloc!.placement,
+              builder: (context, state) {
+                return DropdownSearch<OffenceLocationModel>(
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                    searchDelay: Duration.zero,
+                    itemBuilder: (context, item, isSelected) => ListTile(
+                      title: Text(item.description ?? 'Unknown'),
+                    ),
+                    showSelectedItems: true,
                   ),
+                  items: compoundParkingFormBloc!.placement.state.items,
+                  selectedItem: state.value,
+                  compareFn: (a, b) => a.id == b.id,
+                  itemAsString: (item) => item.description ?? '',
+                  dropdownDecoratorProps: DropDownDecoratorProps(
+                    dropdownSearchDecoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.placement,
+                      prefixIcon: const Icon(
+                        Icons.location_on,
+                        color: accentCanvasColor,
+                      ),
+                      border: OutlineInputBorder(
+                        borderSide: const BorderSide(color: kBlack),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: kBlack),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    compoundParkingFormBloc!.placement.updateValue(value);
+                  },
+                  filterFn: (item, filter) {
+                    return item.description
+                            ?.toLowerCase()
+                            .contains(filter.toLowerCase()) ??
+                        false;
+                  },
                 );
               },
             ),
+
+            spaceVertical(height: 10.0),
 
             /// Visibility for "Lain-Lain" Model Text Field
             BlocBuilder<BooleanFieldBloc, BooleanFieldBlocState>(

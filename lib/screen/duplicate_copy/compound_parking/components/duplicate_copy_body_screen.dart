@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:eo_apk_mbk_v2/helpers/compound_print_format.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 
@@ -26,6 +27,7 @@ class DuplicateCopyBodyScreen extends StatefulWidget {
   final List<OffenceLocationModel> offenceLocationModel;
   final bool isLoading;
   final List<OfficerCompoundModel> compoundList;
+  final Map<String, dynamic> printerMAC;
   const DuplicateCopyBodyScreen({
     super.key,
     required this.dataSets,
@@ -42,6 +44,7 @@ class DuplicateCopyBodyScreen extends StatefulWidget {
     required this.vehicleTypeModel,
     required this.isLoading,
     required this.compoundList,
+    required this.printerMAC,
   });
 
   @override
@@ -136,91 +139,136 @@ class _DuplicateCopyBodyScreenState extends State<DuplicateCopyBodyScreen> {
                             ),
                           ),
                         )
-                      : ListView.builder(
-                          itemCount: widget.dataSets.length,
-                          itemBuilder: (context, index) {
-                            final compoundEntry = widget.dataSets[index];
-                            final model = index < widget.compoundList.length
-                                ? widget.compoundList[index]
-                                : OfficerCompoundModel(); // or skip with SizedBox if invalid
+                      : Builder(
+                          builder: (_) {
+                            final sortedDataSets = [...widget.dataSets];
 
-                            String getValue(String label) {
-                              return compoundEntry.firstWhere(
-                                    (e) => e['label'] == label,
-                                    orElse: () => {'value': ''},
-                                  )['value'] ??
+                            sortedDataSets.sort((a, b) {
+                              String noticeA = a.firstWhere(
+                                      (e) => e['label'] == 'Notice No',
+                                      orElse: () => {'value': ''})['value'] ??
                                   '';
-                            }
+                              String noticeB = b.firstWhere(
+                                      (e) => e['label'] == 'Notice No',
+                                      orElse: () => {'value': ''})['value'] ??
+                                  '';
+                              return noticeA.compareTo(noticeB); // ascending
+                            });
 
-                            final noticeNo =
-                                getValue('Notice No').toLowerCase();
-                            if (_searchText.isNotEmpty &&
-                                !noticeNo.contains(_searchText)) {
-                              return const SizedBox.shrink();
-                            }
+                            return ListView.builder(
+                              itemCount: sortedDataSets.length,
+                              itemBuilder: (context, index) {
+                                final compoundEntry = sortedDataSets[index];
+                                final model = index < widget.compoundList.length
+                                    ? widget.compoundList[index]
+                                    : OfficerCompoundModel();
 
-                            return ScaleTap(
-                              onPressed: () {
-                                CustomDialog.show(
-                                  context,
-                                  title: AppLocalizations.of(context)!
-                                      .duplicateCopy,
-                                  isDissmissable: false,
-                                  description: getValue('Notice No'),
-                                  center: _cardDuplicateCopy(
-                                    vehicleNo: getValue('Vehicle No'),
-                                    roadTaxNo: getValue('Road Tax No'),
-                                    brandModel: getValue('Make/Model'),
-                                    bodyType: getValue('Vehicle Type'),
-                                    color: getValue('Color'),
-                                    dateTime: formatOffenceDate(
-                                        getValue('Offence Date')),
-                                    sectionCode: getSectionDescription(
-                                        getValue('Section Code')),
-                                    actDescription:
-                                        getActDescriptionFromSection(
+                                String getValue(String label) {
+                                  return compoundEntry.firstWhere(
+                                        (e) => e['label'] == label,
+                                        orElse: () => {'value': ''},
+                                      )['value'] ??
+                                      '';
+                                }
+
+                                final noticeNo =
+                                    getValue('Notice No').toLowerCase();
+                                if (_searchText.isNotEmpty &&
+                                    !noticeNo.contains(_searchText)) {
+                                  return const SizedBox.shrink();
+                                }
+
+                                return ScaleTap(
+                                  onPressed: () {
+                                    CustomDialog.show(
+                                      context,
+                                      title: AppLocalizations.of(context)!
+                                          .duplicateCopy,
+                                      isDissmissable: false,
+                                      description: getValue('Notice No'),
+                                      center: _cardDuplicateCopy(
+                                        vehicleNo: getValue('Vehicle No'),
+                                        roadTaxNo: getValue('Road Tax No'),
+                                        brandModel: getValue('Make/Model'),
+                                        bodyType: getValue('Vehicle Type'),
+                                        color: getValue('Color'),
+                                        dateTime: formatOffenceDate(
+                                            getValue('Offence Date')),
+                                        sectionCode: getSectionDescription(
                                             getValue('Section Code')),
-                                    zone: getValue('Area'),
-                                    location: getValue('Location'),
-                                    locationDetails: getValue('Details'),
-                                    notes: getValue('Notes'),
-                                    model: model,
-                                  ),
-                                  btnOkText:
-                                      AppLocalizations.of(context)!.print,
-                                  btnOkOnPress: () {},
-                                  btnCancelText:
-                                      AppLocalizations.of(context)!.close,
-                                  btnCancelOnPress: () {
-                                    Navigator.pop(context);
+                                        actDescription:
+                                            getActDescriptionFromSection(
+                                                getValue('Section Code')),
+                                        zone: getValue('Area'),
+                                        location: getValue('Location'),
+                                        locationDetails: getValue('Details'),
+                                        notes: getValue('Notes'),
+                                        model: model,
+                                      ),
+                                      btnOkText:
+                                          AppLocalizations.of(context)!.print,
+                                      btnOkOnPress: () async {
+                                        await CompoundPrintService
+                                            .connectAndPrintDuplicateCopy(
+                                          model: model,
+                                          rawMac:
+                                              widget.printerMAC['printerMAC'],
+                                          handHeldId: widget.handHeldId,
+                                          userModel: widget.userModel,
+                                          unitModel: widget.unitModel,
+                                          offenceActModel:
+                                              widget.offenceActModel,
+                                          offenceAreaModel:
+                                              widget.offenceAreaModel,
+                                          offenceLocationModel:
+                                              widget.offenceLocationModel,
+                                          offenceSectionModel:
+                                              widget.offenceSectionModel,
+                                          vehicleColorModel:
+                                              widget.vehicleColorModel,
+                                          vehicleMakesModel:
+                                              widget.vehicleMakesModel,
+                                          vehicleModelsModel:
+                                              widget.vehicleModelsModel,
+                                          vehicleTypeModel:
+                                              widget.vehicleTypeModel,
+                                        );
+                                      },
+                                      btnCancelText:
+                                          AppLocalizations.of(context)!.close,
+                                      btnCancelOnPress: () {
+                                        Navigator.pop(context);
+                                      },
+                                    );
                                   },
+                                  child: Container(
+                                    margin: const EdgeInsets.only(bottom: 10),
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: _sectionBoxDecoration(),
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          AppLocalizations.of(context)!
+                                              .noticeNo,
+                                          style: textStyleNormal(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: accentCanvasColor,
+                                          ),
+                                        ),
+                                        Text(
+                                          getValue('Notice No'),
+                                          style: textStyleNormal(
+                                            fontStyle: FontStyle.italic,
+                                            fontSize: 12,
+                                            color: kBlack,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 );
                               },
-                              child: Container(
-                                margin: const EdgeInsets.only(bottom: 10),
-                                padding: const EdgeInsets.all(12),
-                                decoration: _sectionBoxDecoration(),
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      AppLocalizations.of(context)!.noticeNo,
-                                      style: textStyleNormal(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        color: accentCanvasColor,
-                                      ),
-                                    ),
-                                    Text(
-                                      getValue('Notice No'),
-                                      style: textStyleNormal(
-                                        fontStyle: FontStyle.italic,
-                                        fontSize: 12,
-                                        color: kBlack,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
                             );
                           },
                         ),

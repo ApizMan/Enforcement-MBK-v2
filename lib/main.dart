@@ -7,5 +7,8 @@ Future<void> main() async {
 
   await SharedPreferencesHelper.clearVerifyVehicleDesc();
 
+  await SharedPreferencesHelper
+      .deleteOldGalleryImages(); // run before app starts
+
   runApp(const AppRunner(defaultLanguage: 'ms'));
 }

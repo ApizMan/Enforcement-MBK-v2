@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:eo_apk_mbk_v2/helpers/constant.dart';
 import 'package:eo_apk_mbk_v2/models/models.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPreferencesHelper {
@@ -104,9 +106,8 @@ class SharedPreferencesHelper {
   static Future<int> getNoticeSerialNumber() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Ensure the serial starts from 1 instead of 0
-    int serial = prefs.getInt(serialNumberKey) ?? 0;
-    return serial == 0 ? 1 : serial;
+    int serial = prefs.getInt(serialNumberKey) ?? 1;
+    return serial;
   }
 
   static Future<void> setNoticeSerialNumber(int serial) async {
@@ -249,6 +250,33 @@ class SharedPreferencesHelper {
     await prefs.remove(officerCompoundModelPendingKey);
   }
 
+  static Future<void> clearOldOfficerCompoundModelsPendingIfNotToday() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    List<String> jsonList =
+        prefs.getStringList(officerCompoundModelPendingKey) ?? [];
+
+    if (jsonList.isEmpty) return;
+
+    final String todayDate = DateFormat('yyyyMMdd').format(DateTime.now());
+
+    // Filter only models with today's date
+    List<String> filteredList = jsonList.where((jsonString) {
+      final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+      final String? offenceDate = jsonMap['OffenceDateString'];
+
+      if (offenceDate != null && offenceDate.length >= 8) {
+        final String offenceDateOnly = offenceDate.substring(0, 8);
+        return offenceDateOnly == todayDate;
+      }
+
+      return false; // Remove if date is invalid or missing
+    }).toList();
+
+    // Save the filtered list back
+    await prefs.setStringList(officerCompoundModelPendingKey, filteredList);
+  }
+
   // Save Form After Push to Server
   static Future<void> saveOfficerCompoundModel(
       OfficerCompoundModel model) async {
@@ -275,6 +303,33 @@ class SharedPreferencesHelper {
       Map<String, dynamic> jsonMap = jsonDecode(jsonString);
       return OfficerCompoundModel.fromJson(jsonMap);
     }).toList();
+  }
+
+  // Clear Compound if not today
+  static Future<void> clearOldOfficerCompoundModelsIfNotToday() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    List<String> jsonList = prefs.getStringList(officerCompoundModelKey) ?? [];
+
+    if (jsonList.isEmpty) return;
+
+    final String todayDate = DateFormat('yyyyMMdd').format(DateTime.now());
+
+    // Filter only models with today's date
+    List<String> filteredList = jsonList.where((jsonString) {
+      final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+      final String? offenceDate = jsonMap['OffenceDateString'];
+
+      if (offenceDate != null && offenceDate.length >= 8) {
+        final String offenceDateOnly = offenceDate.substring(0, 8);
+        return offenceDateOnly == todayDate;
+      }
+
+      return false; // Remove if date is invalid or missing
+    }).toList();
+
+    // Save the filtered list back
+    await prefs.setStringList(officerCompoundModelKey, filteredList);
   }
 
   static Future<void> saveVerifyVehicleDesc(String verifyDesc) async {
@@ -309,5 +364,31 @@ class SharedPreferencesHelper {
   static Future<void> clearImageCount() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(imageCountKey);
+  }
+
+  static Future<void> deleteOldGalleryImages() async {
+    final dir =
+        Directory('/storage/emulated/0/Download/Pictures/CompoundImages/');
+    if (!await dir.exists()) return;
+
+    final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+    final files = dir.listSync();
+
+    for (var file in files) {
+      if (file is File) {
+        final stat = await file.stat();
+        final modifiedStr = DateFormat('yyyy-MM-dd').format(stat.modified);
+
+        if (modifiedStr != todayStr) {
+          try {
+            await file.delete();
+            print('Deleted: ${file.path}');
+          } catch (e) {
+            print('Failed to delete ${file.path}: $e');
+          }
+        }
+      }
+    }
   }
 }

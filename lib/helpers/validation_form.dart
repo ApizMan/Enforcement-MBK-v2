@@ -41,8 +41,13 @@ Future<ValidationForm> validateForm(bloc, vehicleBloc, bool btnPush) async {
     return ValidationForm.missingModel;
   }
 
+  if (bloc.color.value == null ||
+      (bloc.color.value?.id == '__other_color__' &&
+          bloc.otherColor.value.trim().isEmpty)) {
+    return ValidationForm.missingColor;
+  }
+
   if (bloc.type.value == null) return ValidationForm.missingType;
-  if (bloc.color.value == null) return ValidationForm.missingColor;
   if (bloc.actLaw.value == null) return ValidationForm.missingActLaw;
   if (bloc.section.value == null) return ValidationForm.missingSection;
   if (bloc.area.value == null) return ValidationForm.missingArea;
