@@ -35,8 +35,6 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _resetCompoundAndImage() async {
     // Clear Compound if not today
     await SharedPreferencesHelper.clearOldOfficerCompoundModelsIfNotToday();
-    await SharedPreferencesHelper
-        .clearOldOfficerCompoundModelsPendingIfNotToday();
   }
 
   Future<void> _startInitialization() async {

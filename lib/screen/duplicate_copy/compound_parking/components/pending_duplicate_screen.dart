@@ -3,6 +3,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:eo_apk_mbk_v2/helpers/compound_print_format.dart';
 import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
 import 'package:eo_apk_mbk_v2/routes/route_manager.dart';
@@ -19,6 +21,9 @@ import 'package:eo_apk_mbk_v2/widgets/loading_dialog.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_scale_tap/flutter_scale_tap.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class PendingDuplicateScreen extends StatefulWidget {
   final List<List<Map<String, String?>>> dataSets;
@@ -150,8 +155,101 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
           debugPrint('✅ Uploaded $fileName to EnYasin server');
         }
       } catch (e) {
-        debugPrint('❌ Error uploading image at $path: $e');
+        CustomDialog.show(
+          context,
+          dialogType: DialogType.danger,
+          icon: Icons.cloud_off,
+          title: "Ralat Internet",
+          description: 'Please check your internet connection.',
+          btnOkText: "OK",
+          btnOkOnPress: () => Navigator.pop(context),
+        );
       }
+    }
+  }
+
+  Future<bool> _captureImage({required String noticeNo}) async {
+    final cameraStatus = await Permission.camera.request();
+    PermissionStatus storageStatus;
+
+    if (Platform.isAndroid) {
+      final deviceInfo = await DeviceInfoPlugin().androidInfo;
+      int sdkInt = deviceInfo.version.sdkInt;
+      storageStatus = sdkInt >= 33
+          ? await Permission.photos.request()
+          : await Permission.storage.request();
+    } else {
+      storageStatus = await Permission.photos.request();
+    }
+
+    if (!cameraStatus.isGranted || !storageStatus.isGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Camera or photo access permission denied')),
+      );
+      return false;
+    }
+
+    // Retry loop until valid image is captured
+    XFile? pickedFile;
+    while (pickedFile == null) {
+      pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
+
+      if (pickedFile == null) {
+        final retry = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Image Required'),
+            content: const Text('You must capture an image to proceed.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        );
+
+        if (retry != true) return false;
+      }
+    }
+
+    final Uint8List? compressedBytes =
+        await FlutterImageCompress.compressWithFile(
+      pickedFile.path,
+      quality: 70,
+    );
+
+    if (compressedBytes == null) return false;
+
+    final String base64String = base64Encode(compressedBytes);
+
+    final imageIndex = 'AfterCompound';
+    final fileName = '${noticeNo}Pic$imageIndex.jpg';
+
+    final responseUploadImage = await UploadResources.uploadImage(
+      prefix: 'UploadImageString',
+      body: {
+        'ImageName': fileName,
+        'ImageData': base64String,
+      },
+    );
+
+    if (responseUploadImage['StatusDescription'] == null) {
+      final response = await CompoundResources.updateImageAfter(
+          prefix: '/picture-after-compound/$noticeNo',
+          body: {
+            'pictureName': fileName,
+          });
+
+      if (response['success'] == true) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
     }
   }
 
@@ -221,133 +319,180 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                             borderRadius: 10.0,
                             color: accentCanvasColor,
                             onPressed: () async {
-                              // Get Form Pending
-                              final noticePending =
-                                  await SharedPreferencesHelper
-                                      .getAllOfficerCompoundPendingModels();
+                              try {
+                                final connectivityResult =
+                                    await Connectivity().checkConnectivity();
+                                final hasInternet = connectivityResult !=
+                                    ConnectivityResult.none;
 
-                              LoadingDialog.show(context);
-
-                              for (var notice in noticePending) {
-                                await _uploadCapturedImages(
-                                    noticeNo: notice.noticeNo!);
-                                final responseEnforcementCCP =
-                                    await UploadResources
-                                        .uploadCompoundToEnforcementCCP(
-                                            prefix: 'UploadNotice',
-                                            body: {
-                                      'NoticeNo': notice.noticeNo.toString(),
-                                      'VehicleNo': notice.vehicleNo.toString(),
-                                      'OfficerID': notice.officerId.toString(),
-                                      'OfficerUnit':
-                                          notice.officerUnit.toString(),
-                                      'HandheldCode':
-                                          notice.handheldCode.toString(),
-                                      'OffenceDateString':
-                                          notice.offenceDateString.toString(),
-                                      'VehicleType':
-                                          notice.vehicleType.toString(),
-                                      'VehicleColor':
-                                          notice.vehicleColor.toString(),
-                                      'VehicleMakeModel':
-                                          notice.vehicleMakeModel.toString(),
-                                      'RoadTaxNo': notice.roadTaxNo.toString(),
-                                      'OffenceSectionCode':
-                                          notice.offenceSectionCode.toString(),
-                                      'OffenceArea':
-                                          notice.offenceArea.toString(),
-                                      'OffenceLocation':
-                                          notice.offenceLocation.toString(),
-                                      'OffenceLocationDetails': notice
-                                          .offenceLocationDetails
-                                          .toString(),
-                                      'SquarePoleNo':
-                                          notice.squarePoleNo.toString(),
-                                      'ImageName1':
-                                          notice.imageName1.toString(),
-                                      'ImageName2':
-                                          notice.imageName2.toString(),
-                                      'ImageName3':
-                                          notice.imageName3.toString(),
-                                      'ImageName4':
-                                          notice.imageName4.toString(),
-                                      'ImageName5':
-                                          notice.imageName5.toString(),
-                                      'IsClamping':
-                                          notice.isClamping.toString(),
-                                      'Notes': notice.notes.toString(),
-                                      'Latitude': notice.latitude,
-                                      'Longitude': notice.longitude,
-                                      'CompoundAmount': notice.compoundAmount,
-                                      'OfficerSaksi':
-                                          notice.officerSaksi.toString(),
-                                    });
-
-                                if (responseEnforcementCCP[
-                                        'StatusDescription'] ==
-                                    null) {
-                                  await SharedPreferencesHelper
-                                      .saveOfficerCompoundModel(notice);
-
-                                  await SharedPreferencesHelper
-                                      .removeOfficerCompoundPendingByNoticeNo(
-                                          notice.noticeNo!);
-
-                                  await SharedPreferencesHelper
-                                      .clearCapturedImagePathsPending(
-                                          notice.noticeNo!);
-                                } else {
+                                if (!hasInternet) {
                                   CustomDialog.show(
                                     context,
                                     dialogType: DialogType.danger,
-                                    icon: Icons.warning,
-                                    title:
-                                        AppLocalizations.of(context)!.warning,
-                                    description: responseEnforcementCCP[
-                                        'StatusDescription'],
-                                    btnOkText: AppLocalizations.of(context)!.ok,
+                                    icon: Icons.cloud_off,
+                                    title: "Tiada Internet",
+                                    description:
+                                        "Sila sambungkan ke internet untuk meneruskan.",
+                                    btnOkText: "OK",
                                     btnOkOnPress: () => Navigator.pop(context),
                                   );
+                                  return;
                                 }
+
+                                // ✅ Continue your current logic...
+                                final noticePending =
+                                    await SharedPreferencesHelper
+                                        .getAllOfficerCompoundPendingModels();
+
+                                final noticesWithoutImage = noticePending
+                                    .where((notice) =>
+                                        notice.imageName5?.isEmpty ?? true)
+                                    .toList();
+
+                                if (noticesWithoutImage.isNotEmpty) {
+                                  final missingNoticeNos = noticesWithoutImage
+                                      .map((e) => e.noticeNo)
+                                      .join(',\n');
+
+                                  CustomDialog.show(
+                                    context,
+                                    dialogType: DialogType.danger,
+                                    icon: Icons.error_rounded,
+                                    title:
+                                        AppLocalizations.of(context)!.warning,
+                                    description:
+                                        '${AppLocalizations.of(context)!.warningImage1}:\n$missingNoticeNos\n\n${AppLocalizations.of(context)!.warningImage2}',
+                                    btnCancelText:
+                                        AppLocalizations.of(context)!.cancel,
+                                    btnCancelOnPress: () =>
+                                        Navigator.pop(context),
+                                    btnOkText: AppLocalizations.of(context)!.ok,
+                                    btnOkOnPress: () async {
+                                      try {
+                                        Navigator.pop(context);
+                                        LoadingDialog.show(context);
+
+                                        for (var notice in noticePending) {
+                                          await _uploadCompound(
+                                              notice, context);
+                                        }
+
+                                        LoadingDialog.hide(context);
+
+                                        CustomDialog.show(
+                                          context,
+                                          dialogType: DialogType.info,
+                                          icon: Icons.done,
+                                          title: AppLocalizations.of(context)!
+                                              .successUploaded,
+                                          description:
+                                              AppLocalizations.of(context)!
+                                                  .successPushServer,
+                                          btnOkText:
+                                              AppLocalizations.of(context)!.ok,
+                                          btnOkOnPress: () =>
+                                              Navigator.pushNamedAndRemoveUntil(
+                                            context,
+                                            RouteManager.homeScreen,
+                                            (route) => false,
+                                            arguments: {
+                                              'userModel': widget.userModel,
+                                              'unitModel': widget.unitModel,
+                                              'handHeldId': widget.handHeldId,
+                                              'vehicleTypeModel':
+                                                  widget.vehicleTypeModel,
+                                              'vehicleMakesModel':
+                                                  widget.vehicleMakesModel,
+                                              'vehicleModelsModel':
+                                                  widget.vehicleModelsModel,
+                                              'vehicleColorModel':
+                                                  widget.vehicleColorModel,
+                                              'offenceActModel':
+                                                  widget.offenceActModel,
+                                              'offenceSectionModel':
+                                                  widget.offenceSectionModel,
+                                              'offenceAreaModel':
+                                                  widget.offenceAreaModel,
+                                              'offenceLocationModel':
+                                                  widget.offenceLocationModel,
+                                            },
+                                          ),
+                                        );
+                                      } catch (e) {
+                                        CustomDialog.show(
+                                          context,
+                                          dialogType: DialogType.danger,
+                                          icon: Icons.cloud_off,
+                                          title: "Ralat Internet",
+                                          description:
+                                              'Please check your internet connection.',
+                                          btnOkText: "OK",
+                                          btnOkOnPress: () =>
+                                              Navigator.pop(context),
+                                        );
+                                      }
+                                    },
+                                  );
+                                } else {
+                                  // If all notices have imageName5
+                                  LoadingDialog.show(context);
+
+                                  for (var notice in noticePending) {
+                                    await _uploadCompound(notice, context);
+                                  }
+
+                                  LoadingDialog.hide(context);
+
+                                  CustomDialog.show(
+                                    context,
+                                    dialogType: DialogType.info,
+                                    icon: Icons.done,
+                                    title: AppLocalizations.of(context)!
+                                        .successUploaded,
+                                    description: AppLocalizations.of(context)!
+                                        .successPushServer,
+                                    btnOkText: AppLocalizations.of(context)!.ok,
+                                    btnOkOnPress: () =>
+                                        Navigator.pushNamedAndRemoveUntil(
+                                      context,
+                                      RouteManager.homeScreen,
+                                      (route) => false,
+                                      arguments: {
+                                        'userModel': widget.userModel,
+                                        'unitModel': widget.unitModel,
+                                        'handHeldId': widget.handHeldId,
+                                        'vehicleTypeModel':
+                                            widget.vehicleTypeModel,
+                                        'vehicleMakesModel':
+                                            widget.vehicleMakesModel,
+                                        'vehicleModelsModel':
+                                            widget.vehicleModelsModel,
+                                        'vehicleColorModel':
+                                            widget.vehicleColorModel,
+                                        'offenceActModel':
+                                            widget.offenceActModel,
+                                        'offenceSectionModel':
+                                            widget.offenceSectionModel,
+                                        'offenceAreaModel':
+                                            widget.offenceAreaModel,
+                                        'offenceLocationModel':
+                                            widget.offenceLocationModel,
+                                      },
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                CustomDialog.show(
+                                  context,
+                                  dialogType: DialogType.danger,
+                                  icon: Icons.cloud_off,
+                                  title: "Ralat Sistem",
+                                  description:
+                                      'Sila cuba lagi atau hubungi pentadbir.',
+                                  btnOkText: "OK",
+                                  btnOkOnPress: () => Navigator.pop(context),
+                                );
                               }
-
-                              LoadingDialog.hide(context);
-
-                              CustomDialog.show(
-                                context,
-                                dialogType: DialogType.info,
-                                icon: Icons.done,
-                                title: AppLocalizations.of(context)!
-                                    .successUploaded,
-                                description:
-                                    'Pending Compound Success been uploaded to Server.',
-                                btnOkText: AppLocalizations.of(context)!.ok,
-                                btnOkOnPress: () =>
-                                    Navigator.pushNamedAndRemoveUntil(
-                                        context,
-                                        RouteManager.homeScreen,
-                                        (route) => false,
-                                        arguments: {
-                                      'userModel': widget.userModel,
-                                      'unitModel': widget.unitModel,
-                                      'handHeldId': widget.handHeldId,
-                                      'vehicleTypeModel':
-                                          widget.vehicleTypeModel,
-                                      'vehicleMakesModel':
-                                          widget.vehicleMakesModel,
-                                      'vehicleModelsModel':
-                                          widget.vehicleModelsModel,
-                                      'vehicleColorModel':
-                                          widget.vehicleColorModel,
-                                      'offenceActModel': widget.offenceActModel,
-                                      'offenceSectionModel':
-                                          widget.offenceSectionModel,
-                                      'offenceAreaModel':
-                                          widget.offenceAreaModel,
-                                      'offenceLocationModel':
-                                          widget.offenceLocationModel,
-                                    }),
-                              );
                             },
                             label: Text(
                               AppLocalizations.of(context)!.resubmit,
@@ -399,24 +544,91 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                                       .duplicateCopy,
                                   isDissmissable: false,
                                   description: getValue('Notice No'),
-                                  center: _cardDuplicateCopy(
-                                    vehicleNo: getValue('Vehicle No'),
-                                    roadTaxNo: getValue('Road Tax No'),
-                                    brandModel: getValue('Make/Model'),
-                                    bodyType: getValue('Vehicle Type'),
-                                    color: getValue('Color'),
-                                    dateTime: formatOffenceDate(
-                                        getValue('Offence Date')),
-                                    sectionCode: getSectionDescription(
-                                        getValue('Section Code')),
-                                    actDescription:
-                                        getActDescriptionFromSection(
+                                  center: Column(
+                                    children: [
+                                      _cardDuplicateCopy(
+                                        vehicleNo: getValue('Vehicle No'),
+                                        roadTaxNo: getValue('Road Tax No'),
+                                        brandModel: getValue('Make/Model'),
+                                        bodyType: getValue('Vehicle Type'),
+                                        color: getValue('Color'),
+                                        dateTime: formatOffenceDate(
+                                            getValue('Offence Date')),
+                                        sectionCode: getSectionDescription(
                                             getValue('Section Code')),
-                                    zone: getValue('Area'),
-                                    location: getValue('Location'),
-                                    locationDetails: getValue('Details'),
-                                    notes: getValue('Notes'),
-                                    model: model,
+                                        actDescription:
+                                            getActDescriptionFromSection(
+                                                getValue('Section Code')),
+                                        zone: getValue('Area'),
+                                        location: getValue('Location'),
+                                        locationDetails: getValue('Details'),
+                                        notes: getValue('Notes'),
+                                        model: model,
+                                      ),
+                                      PrimaryButton(
+                                        buttonWidth: 0.9,
+                                        borderRadius: 10.0,
+                                        color: accentCanvasColor,
+                                        label: Text(
+                                          AppLocalizations.of(context)!
+                                              .captureImageAfterCompound,
+                                          style: textStyleNormal(
+                                              color: kWhite, fontSize: 10),
+                                        ),
+                                        onPressed: () async {
+                                          await _uploadCompound(model, context);
+                                          final successUploadImageAfter =
+                                              await _captureImage(
+                                                  noticeNo:
+                                                      getValue('Notice No'));
+
+                                          if (successUploadImageAfter) {
+                                            CustomDialog.show(
+                                              context,
+                                              dialogType: DialogType.info,
+                                              icon: Icons.done,
+                                              title:
+                                                  AppLocalizations.of(context)!
+                                                      .successUploaded,
+                                              btnOkText:
+                                                  AppLocalizations.of(context)!
+                                                      .ok,
+                                              btnOkOnPress: () => Navigator
+                                                  .pushNamedAndRemoveUntil(
+                                                context,
+                                                RouteManager
+                                                    .duplicateCopyParkingScreen,
+                                                ModalRoute.withName(RouteManager
+                                                    .homeScreen), // 👈 Keep HomeScreen
+                                                arguments: {
+                                                  'userModel': widget.userModel,
+                                                  'unitModel': widget.unitModel,
+                                                  'handHeldId':
+                                                      widget.handHeldId,
+                                                  'vehicleTypeModel':
+                                                      widget.vehicleTypeModel,
+                                                  'vehicleMakesModel':
+                                                      widget.vehicleMakesModel,
+                                                  'vehicleModelsModel':
+                                                      widget.vehicleModelsModel,
+                                                  'vehicleColorModel':
+                                                      widget.vehicleColorModel,
+                                                  'offenceActModel':
+                                                      widget.offenceActModel,
+                                                  'offenceSectionModel': widget
+                                                      .offenceSectionModel,
+                                                  'offenceAreaModel':
+                                                      widget.offenceAreaModel,
+                                                  'offenceLocationModel': widget
+                                                      .offenceLocationModel,
+                                                },
+                                              ),
+                                            );
+                                          } else {}
+                                        },
+                                      ),
+                                      spaceVertical(height: 10.0),
+                                    ],
                                   ),
                                   btnOkText:
                                       AppLocalizations.of(context)!.print,
@@ -482,6 +694,131 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
               ],
             ),
     );
+  }
+
+  Future<void> _uploadCompound(
+      OfficerCompoundModel notice, BuildContext context) async {
+    try {
+      await _uploadCapturedImages(noticeNo: notice.noticeNo!);
+
+      final officerData = await SharedPreferencesHelper.getLoginCredential();
+
+      final witness = widget.userModel.firstWhere(
+        (user) => user.id == notice.officerSaksi,
+        orElse: () => UserModel(), // Or handle null safely
+      );
+
+      final witnessName =
+          witness.fullName; // assuming UserModel has a `.name` field
+
+      final now = DateTime.now();
+      final formatted = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+
+      final idByNoticeNo =
+          await SharedPreferencesHelper.getIdsByNoticeNo(notice.noticeNo!);
+
+      final responsePahangGo = await UploadResources.uploadCompoundToPahangGo(
+          prefix: 'compound/parking',
+          body: {
+            'compound_number': notice.noticeNo,
+            'act_id': idByNoticeNo!['act_id'],
+            'offence_id': idByNoticeNo['offence_id'],
+            'area_id': idByNoticeNo['area_id'],
+            'zone_id': idByNoticeNo['zone_id'],
+            'vehicle_type': notice.vehicleType,
+            'vehicle_model': notice.vehicleMakeModel,
+            'color': notice.vehicleColor,
+            'plate_number': notice.vehicleNo,
+            'road_tax_number': notice.roadTaxNo,
+            'parking_lot_number': notice.squarePoleNo,
+            'street_name': notice.offenceArea,
+            'offence_location': notice.offenceLocation,
+            'offence_datetime':
+                formatOffenceDatePahangGo(notice.offenceDateString!),
+            'witness_code': notice.officerSaksi,
+            'witness_name': witnessName,
+            'enforcer_code': notice.officerId,
+            'enforcer_name': officerData['name'],
+            'status': 0,
+            'status_time': formatted,
+          });
+
+      if (responsePahangGo['status'] == true) {
+        final responseEnforcementCCP =
+            await UploadResources.uploadCompoundToEnforcementCCP(
+                prefix: 'UploadNotice',
+                body: {
+              'NoticeNo': notice.noticeNo.toString(),
+              'VehicleNo': notice.vehicleNo.toString(),
+              'OfficerID': notice.officerId.toString(),
+              'OfficerUnit': notice.officerUnit.toString(),
+              'HandheldCode': notice.handheldCode.toString(),
+              'OffenceDateString': notice.offenceDateString.toString(),
+              'VehicleType': notice.vehicleType.toString(),
+              'VehicleColor': notice.vehicleColor.toString(),
+              'VehicleMakeModel': notice.vehicleMakeModel.toString(),
+              'RoadTaxNo': notice.roadTaxNo.toString(),
+              'OffenceSectionCode': notice.offenceSectionCode.toString(),
+              'OffenceArea': notice.offenceArea.toString(),
+              'OffenceLocation': notice.offenceLocation.toString(),
+              'OffenceLocationDetails':
+                  notice.offenceLocationDetails.toString(),
+              'SquarePoleNo': notice.squarePoleNo.toString(),
+              'ImageName1': notice.imageName1.toString(),
+              'ImageName2': notice.imageName2.toString(),
+              'ImageName3': notice.imageName3.toString(),
+              'ImageName4': notice.imageName4.toString(),
+              'ImageName5': notice.imageName5.toString(),
+              'IsClamping': notice.isClamping.toString(),
+              'Notes': notice.notes.toString(),
+              'Latitude': notice.latitude,
+              'Longitude': notice.longitude,
+              'CompoundAmount': notice.compoundAmount,
+              'OfficerSaksi': notice.officerSaksi.toString(),
+            });
+
+        if (responseEnforcementCCP['StatusDescription'] == null) {
+          await SharedPreferencesHelper.saveOfficerCompoundModel(notice);
+
+          await SharedPreferencesHelper.removeOfficerCompoundPendingByNoticeNo(
+              notice.noticeNo!);
+
+          await SharedPreferencesHelper.clearCapturedImagePathsPending(
+              notice.noticeNo!);
+        } else {
+          CustomDialog.show(
+            context,
+            dialogType: DialogType.danger,
+            icon: Icons.warning,
+            title: AppLocalizations.of(context)!.warning,
+            description: responseEnforcementCCP['StatusDescription'],
+            btnOkText: AppLocalizations.of(context)!.ok,
+            btnOkOnPress: () => Navigator.pop(context),
+          );
+        }
+      } else {
+        CustomDialog.show(
+          context,
+          dialogType: DialogType.danger,
+          icon: Icons.warning,
+          title: AppLocalizations.of(context)!.warning,
+          description: responsePahangGo['message'] ??
+              'Failed to upload compound to Pahang Go.',
+          btnOkText: AppLocalizations.of(context)!.ok,
+          btnOkOnPress: () => Navigator.pop(context),
+        );
+      }
+    } catch (e) {
+      CustomDialog.show(
+        context,
+        dialogType: DialogType.danger,
+        icon: Icons.cloud_off,
+        title: "Ralat Internet",
+        description: 'Please check your internet connection.',
+        btnOkText: "OK",
+        btnOkOnPress: () => Navigator.pop(context),
+      );
+    }
   }
 
   BoxDecoration _sectionBoxDecoration() {

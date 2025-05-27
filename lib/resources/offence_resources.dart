@@ -6,13 +6,7 @@ import 'package:http/http.dart' as http;
 
 class OffenceResources {
   static Future<dynamic> getDevice({required String prefix}) async {
-    return _retryGetRequest('$baseUrl$prefix');
-  }
-
-  static Future<dynamic> getDownloadLookupTable({
-    required String prefix,
-  }) async {
-    return _retryGetRequest('$baseUrl$prefix');
+    return _retryGetRequest('$backendUrl$prefix');
   }
 
   static Future<dynamic> _retryGetRequest(String url) async {

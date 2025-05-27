@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:eo_apk_mbk_v2/controllers/home_controller.dart';
 import 'package:eo_apk_mbk_v2/form_blocs/form_bloc.dart';
 import 'package:eo_apk_mbk_v2/helpers/constant.dart';
@@ -20,6 +21,8 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 import 'package:eo_apk_mbk_v2/helpers/validation_form.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -96,6 +99,98 @@ class _HomeScreenState extends State<HomeScreen> {
             arguments['offenceLocationModel'] as List<OffenceLocationModel>;
       }
       _isInitialized = true;
+    }
+  }
+
+  Future<bool> _captureImage() async {
+    final cameraStatus = await Permission.camera.request();
+    PermissionStatus storageStatus;
+
+    if (Platform.isAndroid) {
+      final deviceInfo = await DeviceInfoPlugin().androidInfo;
+      int sdkInt = deviceInfo.version.sdkInt;
+      storageStatus = sdkInt >= 33
+          ? await Permission.photos.request()
+          : await Permission.storage.request();
+    } else {
+      storageStatus = await Permission.photos.request();
+    }
+
+    if (!cameraStatus.isGranted || !storageStatus.isGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Camera or photo access permission denied')),
+      );
+      return false;
+    }
+
+    // Retry loop until valid image is captured
+    XFile? pickedFile;
+    while (pickedFile == null) {
+      pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
+
+      if (pickedFile == null) {
+        final retry = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Image Required'),
+            content: const Text('You must capture an image to proceed.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        );
+
+        if (retry != true) return false;
+      }
+    }
+
+    final Uint8List? compressedBytes =
+        await FlutterImageCompress.compressWithFile(
+      pickedFile.path,
+      quality: 70,
+    );
+
+    if (compressedBytes == null) return false;
+
+    final String base64String = base64Encode(compressedBytes);
+
+    final handheldCode = await SharedPreferencesHelper.getHandheldId();
+    final year = DateTime.now().year.toString().substring(2);
+    int serial = await SharedPreferencesHelper.getNoticeSerialNumber();
+    final previousSerial = serial - 1;
+    final paddedSerial = previousSerial.toString().padLeft(5, '0');
+    final imageIndex = 'AfterCompound';
+    final fileName = '$handheldCode$year${paddedSerial}Pic$imageIndex.jpg';
+
+    final responseUploadImage = await UploadResources.uploadImage(
+      prefix: 'UploadImageString',
+      body: {
+        'ImageName': fileName,
+        'ImageData': base64String,
+      },
+    );
+
+    final compoundName = '$handheldCode$year$paddedSerial';
+
+    if (responseUploadImage['StatusDescription'] == null) {
+      final response = await CompoundResources.updateImageAfter(
+          prefix: '/picture-after-compound/$compoundName',
+          body: {
+            'pictureName': fileName,
+          });
+
+      if (response['success'] == true) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
     }
   }
 
@@ -227,26 +322,99 @@ class _HomeScreenState extends State<HomeScreen> {
                         return;
                     }
                   },
-                  onSuccess: (context, state) {
+                  onSuccess: (context, state) async {
                     LoadingDialog.hide(context);
-                    setState(() {
-                      _uploadCapturedImages(); // ✅ Only upload if form is valid
-                    });
-                    Navigator.pushNamedAndRemoveUntil(
-                        context, RouteManager.homeScreen, (route) => false,
-                        arguments: {
-                          'userModel': userModel,
-                          'unitModel': unitModel,
-                          'handHeldId': handHeldId,
-                          'vehicleTypeModel': vehicleTypeModel,
-                          'vehicleMakesModel': vehicleMakesModel,
-                          'vehicleModelsModel': vehicleModelsModel,
-                          'vehicleColorModel': vehicleColorModel,
-                          'offenceActModel': offenceActModel,
-                          'offenceSectionModel': offenceSectionModel,
-                          'offenceAreaModel': offenceAreaModel,
-                          'offenceLocationModel': offenceLocationModel,
-                        });
+                    final uploadImageBeforeCompound =
+                        await _uploadCapturedImages(); // ✅ Only upload if form is valid
+
+                    if (uploadImageBeforeCompound) {
+                      final captureAfterCompound = await _captureImage();
+
+                      if (captureAfterCompound) {
+                        CustomDialog.show(
+                          context,
+                          dialogType: DialogType.info,
+                          icon: Icons.done,
+                          title:
+                              AppLocalizations.of(context)!.compoundSuccessDesc,
+                          description: '',
+                          btnOkText: AppLocalizations.of(context)!.ok,
+                          btnOkOnPress: () => Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            RouteManager.homeScreen,
+                            (route) => false,
+                            arguments: {
+                              'userModel': userModel,
+                              'unitModel': unitModel,
+                              'handHeldId': handHeldId,
+                              'vehicleTypeModel': vehicleTypeModel,
+                              'vehicleMakesModel': vehicleMakesModel,
+                              'vehicleModelsModel': vehicleModelsModel,
+                              'vehicleColorModel': vehicleColorModel,
+                              'offenceActModel': offenceActModel,
+                              'offenceSectionModel': offenceSectionModel,
+                              'offenceAreaModel': offenceAreaModel,
+                              'offenceLocationModel': offenceLocationModel,
+                            },
+                          ),
+                        );
+                      } else {
+                        CustomDialog.show(
+                          context,
+                          dialogType: DialogType.danger,
+                          icon: Icons.warning,
+                          title: AppLocalizations.of(context)!.warning,
+                          description: 'Error Upload Image After Compound',
+                          btnOkText: AppLocalizations.of(context)!.ok,
+                          btnOkOnPress: () => Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            RouteManager.homeScreen,
+                            (route) => false,
+                            arguments: {
+                              'userModel': userModel,
+                              'unitModel': unitModel,
+                              'handHeldId': handHeldId,
+                              'vehicleTypeModel': vehicleTypeModel,
+                              'vehicleMakesModel': vehicleMakesModel,
+                              'vehicleModelsModel': vehicleModelsModel,
+                              'vehicleColorModel': vehicleColorModel,
+                              'offenceActModel': offenceActModel,
+                              'offenceSectionModel': offenceSectionModel,
+                              'offenceAreaModel': offenceAreaModel,
+                              'offenceLocationModel': offenceLocationModel,
+                            },
+                          ),
+                        );
+                      }
+                    } else {
+                      CustomDialog.show(
+                        context,
+                        dialogType: DialogType.danger,
+                        icon: Icons.warning,
+                        title: AppLocalizations.of(context)!.warning,
+                        description: 'Error Upload Image Before Compound',
+                        btnOkText: AppLocalizations.of(context)!.ok,
+                        btnOkOnPress: () => Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          RouteManager.homeScreen,
+                          (route) => false,
+                          arguments: {
+                            'userModel': userModel,
+                            'unitModel': unitModel,
+                            'handHeldId': handHeldId,
+                            'vehicleTypeModel': vehicleTypeModel,
+                            'vehicleMakesModel': vehicleMakesModel,
+                            'vehicleModelsModel': vehicleModelsModel,
+                            'vehicleColorModel': vehicleColorModel,
+                            'offenceActModel': offenceActModel,
+                            'offenceSectionModel': offenceSectionModel,
+                            'offenceAreaModel': offenceAreaModel,
+                            'offenceLocationModel': offenceLocationModel,
+                          },
+                        ),
+                      );
+                    }
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(state.successResponse!)),
                     );
@@ -497,10 +665,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _uploadCapturedImages() async {
+  Future<bool> _uploadCapturedImages() async {
     final paths = await SharedPreferencesHelper.getCapturedImagePaths();
 
-    // Filter non-null and existing paths
+    // Filter non-null and non-empty paths
     final validPaths =
         paths.where((path) => path != null && path.isNotEmpty).toList();
 
@@ -511,12 +679,12 @@ class _HomeScreenState extends State<HomeScreen> {
         final Uint8List? compressedBytes =
             await FlutterImageCompress.compressWithFile(
           file.path,
-          quality: 70, // You can adjust the quality (0-100)
+          quality: 70,
         );
 
         if (compressedBytes == null) {
           debugPrint('❌ Failed to compress $path');
-          continue;
+          return false;
         }
 
         // ✅ Encode to base64
@@ -540,19 +708,21 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           );
 
-          if (responseEnYasin['StatusCode'] == null) {
-            debugPrint('✅ Uploaded $fileName successfully');
-          } else {
+          if (responseEnYasin['StatusCode'] != null) {
             debugPrint('❌ Failed to upload $fileName to EnYasin');
             debugPrint('Response: ${responseEnYasin['StatusDescription']}');
-            break;
+            return false;
           }
+
+          debugPrint('✅ Uploaded $fileName successfully');
         } else {
           debugPrint('❌ Failed to upload $fileName');
           debugPrint('Response: ${response.body}');
-          break;
+          return false;
         }
       }
     }
+
+    return true;
   }
 }

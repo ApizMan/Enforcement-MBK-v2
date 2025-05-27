@@ -67,5 +67,11 @@
   "comingSoon": "Akan Datang",
   "resubmit": "Hantar Semula",
   "successUploaded": "Berjaya Dimuatnaik",
-  "pending": "Sementara"
+  "pending": "Sementara",
+  "captureImageAfterCompound": "Tangkap Gambar Selepas Kompaun",
+  "cancel": "Batal",
+  "successPushServer": "Kompoun Sementara berjaya dimuatnaik ke dalam Server.",
+  "warningImage1": "Kompoun yang tiada gambar selepas",
+  "warningImage2": "Adakah Anda Pasti Mahu Meneruskan Tindakan Ini?",
+  "compoundSuccessDesc": "Kompoun Berjaya Dikeluarkan"
 }

@@ -13,7 +13,9 @@ const String enYasinUrl =
 const String myEnfocementEnYasinUrl =
     'http://myenforce.citycarpark.my/HandheldApi_MBK/HandheldService.svc/JSONService/';
 
-const String validateVehicleUrl = 'http://220.158.208.216:3030';
+const String backendUrl = 'http://220.158.208.216:3030';
+
+const String pahangGoUrl = 'https://staging.forcify.xyz/api/v1/external/';
 
 // Colors
 const Color kBlack = Colors.black;
@@ -55,6 +57,7 @@ const String officerCompoundModelPendingKey = 'officerCompoundModelPendingKey';
 const String officerCompoundModelKey = 'officerCompoundModelKey';
 const String verifyDescKey = 'verifyDescKey';
 const String imageCountKey = 'imageCountKey';
+const String compoundIdKey = 'compoundIdKey';
 
 final divider = Divider(color: kWhite.withOpacity(0.3), height: 1);
 

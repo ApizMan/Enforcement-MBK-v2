@@ -67,5 +67,11 @@
   "comingSoon": "Coming Soon",
   "resubmit": "Re-Submit",
   "successUploaded": "Successfully Uploaded",
-  "pending": "Pending"
+  "pending": "Pending",
+  "captureImageAfterCompound": "Capture Image After Compound",
+  "cancel": "Cancel",
+  "successPushServer": "Pending Compound has been successfully uploaded to the server.",
+  "warningImage1": "Compound that not have Image After",
+  "warningImage2": "Are You Sure Wanted To Continue this Action?",
+  "compoundSuccessDesc": "Compound Success Created"
 }

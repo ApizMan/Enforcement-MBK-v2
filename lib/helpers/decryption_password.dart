@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:flutter/foundation.dart';
 
 String asciiToHex(String input) {
   final asciiBytes = ascii.encode(input);
@@ -30,8 +32,7 @@ String embedSalt(String salt, String data) {
   dataIndex++;
 
   while (saltIndex < salt.length && dataIndex < result.length) {
-    result =
-        result.substring(0, dataIndex) +
+    result = result.substring(0, dataIndex) +
         salt[saltIndex] +
         result.substring(dataIndex);
     dataIndex++;
@@ -52,43 +53,27 @@ String embedSalt(String salt, String data) {
   final lenBytes = Uint8List(2);
   lenBytes[0] = (len % 256);
   lenBytes[1] = (len ~/ 256);
-  result +=
-      ascii
-          .encode(bytesToHex(lenBytes))
-          .map((e) => String.fromCharCode(e))
-          .join();
+  result += ascii
+      .encode(bytesToHex(lenBytes))
+      .map((e) => String.fromCharCode(e))
+      .join();
   return result;
 }
 
-bool verifyHash(
-  String inputPassword,
-  String encryptedBase64, {
-  String hashType = 'MD5',
-}) {
-  final decodedBytes = base64.decode(encryptedBase64);
-  int hashLength = 16; // for MD5
+bool verifyPasswordDecrypt(String inputPassword, String encryptedBase64,
+    String expectedDecryptedValue) {
+  try {
+    final key = sha256.convert(utf8.encode(inputPassword)).bytes;
+    final encryptedBytes = base64.decode(encryptedBase64);
 
-  if (decodedBytes.length < hashLength) return false;
+    final aesKey = encrypt.Key(Uint8List.fromList(key));
+    final encrypter =
+        encrypt.Encrypter(encrypt.AES(aesKey, mode: encrypt.AESMode.ecb));
+    final decrypted = encrypter.decrypt(encrypt.Encrypted(encryptedBytes));
 
-  decodedBytes.sublist(0, hashLength);
-  final saltBytes = decodedBytes.sublist(hashLength);
-  final saltHex = bytesToHex(saltBytes);
-  final passwordHex = asciiToHex(inputPassword);
-
-  final embedded = embedSalt(saltHex, passwordHex);
-
-  Digest digest;
-  switch (hashType.toUpperCase()) {
-    case 'MD5':
-    default:
-      digest = md5.convert(utf8.encode(embedded));
-      break;
+    return decrypted == expectedDecryptedValue;
+  } catch (e) {
+    print('❌ Decryption failed for password [$inputPassword]: $e');
+    return false;
   }
-
-  final computedHashHex = digest.bytes;
-  final finalBytes = Uint8List.fromList([...computedHashHex, ...saltBytes]);
-  final finalHex = bytesToHex(finalBytes);
-  final originalHex = bytesToHex(decodedBytes);
-
-  return finalHex == originalHex;
 }

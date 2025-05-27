@@ -131,14 +131,18 @@ class _VehicleFaultScreenState extends State<VehicleFaultScreen> {
                     ),
                   ),
                   spaceHorizontal(width: 10.0),
-                  PrimaryButton(
-                    buttonWidth: 0.3,
-                    borderRadius: 10.0,
-                    color: accentCanvasColor,
-                    onPressed: () => widget.vehicleValidationFormBloc!.submit(),
-                    label: Text(
-                      AppLocalizations.of(context)!.verify,
-                      style: textStyleNormal(color: kWhite, fontSize: 10),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 15.0),
+                    child: PrimaryButton(
+                      buttonWidth: 0.3,
+                      borderRadius: 10.0,
+                      color: accentCanvasColor,
+                      onPressed: () =>
+                          widget.vehicleValidationFormBloc!.submit(),
+                      label: Text(
+                        AppLocalizations.of(context)!.verify,
+                        style: textStyleNormal(color: kWhite, fontSize: 10),
+                      ),
                     ),
                   ),
                 ],

@@ -23,18 +23,62 @@ Future<OffenceDataModel> fetchOffenceAreasList({
   onProgress?.call("Registering handheld...", 0.25);
 
   final response = await OffenceResources.getDevice(
-    prefix: 'RegisterDevice/$deviceId',
+    prefix: '/compound/register/$deviceId',
   );
 
-  if (response != null && response['HandheldCode'] != null) {
-    final handheldCode = response['HandheldCode'];
+  if (response != null && response['handheldCode'] != null) {
+    final handheldCode = response['handheldCode'];
 
     await SharedPreferencesHelper.saveHandheldId(handheldCode);
 
     onProgress?.call("Downloading lookup table...", 0.35);
 
-    final lookupResponse = await OffenceResources.getDownloadLookupTable(
-      prefix: 'DownloadLookupTable/$handheldCode',
+    final actResponse = await DownloadLookupResources.getArea(
+      prefix: '/list/act',
+    );
+
+    final sectionResponse = await DownloadLookupResources.getSection(
+      prefix: '/list/section',
+    );
+
+    final areaResponse = await DownloadLookupResources.getArea(
+      prefix: '/list/area',
+    );
+
+    final locationResponse = await DownloadLookupResources.getLocation(
+      prefix: '/list/location',
+    );
+
+    final officerInfoResponse = await DownloadLookupResources.getOfficerInfo(
+      prefix: '/list/officer-info',
+    );
+
+    final officerUnitResponse = await DownloadLookupResources.getOfficerUnit(
+      prefix: '/list/officer-unit',
+    );
+
+    final vehicleMakeResponse = await DownloadLookupResources.getVehicleMake(
+      prefix: '/list/vehicle-make',
+    );
+
+    final vehicleModelResponse = await DownloadLookupResources.getVehicleModel(
+      prefix: '/list/vehicle-model',
+    );
+
+    final vehicleTypeResponse = await DownloadLookupResources.getVehicleType(
+      prefix: '/list/vehicle-type',
+    );
+
+    final vehicleColorResponse = await DownloadLookupResources.getVehicleColor(
+      prefix: '/list/vehicle-color',
+    );
+
+    await DownloadLookupResources.getGroupMaster(
+      prefix: '/list/group-master',
+    );
+
+    await DownloadLookupResources.getTicketMaster(
+      prefix: '/list/compound',
     );
 
     List<UserModel> users = [];
@@ -48,76 +92,74 @@ Future<OffenceDataModel> fetchOffenceAreasList({
     List<OffenceAreaModel> offenceAreaModel = [];
     List<OffenceLocationModel> offenceLocationModel = [];
 
-    if (lookupResponse != null) {
-      if (lookupResponse['OfficerInfos'] is List) {
-        onProgress?.call("Loading officer data...", 0.45);
-        users = (lookupResponse['OfficerInfos'] as List)
-            .map((e) => UserModel.fromJson(e))
-            .toList();
-      }
+    if (officerInfoResponse['filteredUsers'] is List) {
+      onProgress?.call("Loading officer data...", 0.45);
+      users = (officerInfoResponse['filteredUsers'] as List)
+          .map((e) => UserModel.fromJson(e))
+          .toList();
+    }
 
-      if (lookupResponse['OfficerUnits'] is List) {
-        onProgress?.call("Loading unit data...", 0.5);
-        units = (lookupResponse['OfficerUnits'] as List)
-            .map((e) => OfficerUnitModel.fromJson(e))
-            .toList();
-      }
+    if (officerUnitResponse['mysqlData'] is List) {
+      onProgress?.call("Loading unit data...", 0.5);
+      units = (officerUnitResponse['mysqlData'] as List)
+          .map((e) => OfficerUnitModel.fromJson(e))
+          .toList();
+    }
 
-      if (lookupResponse['VehicleMakes'] is List) {
-        onProgress?.call("Loading vehicle makes...", 0.55);
-        vehicleMakesModel = (lookupResponse['VehicleMakes'] as List)
-            .map((e) => VehicleBrandModel.fromJson(e))
-            .toList();
-      }
+    if (vehicleMakeResponse['data'] is List) {
+      onProgress?.call("Loading vehicle makes...", 0.55);
+      vehicleMakesModel = (vehicleMakeResponse['data'] as List)
+          .map((e) => VehicleBrandModel.fromJson(e))
+          .toList();
+    }
 
-      if (lookupResponse['VehicleModels'] is List) {
-        onProgress?.call("Loading vehicle models...", 0.6);
-        vehicleModelsModel = (lookupResponse['VehicleModels'] as List)
-            .map((e) => VehicleModelsModel.fromJson(e))
-            .toList();
-      }
+    if (vehicleModelResponse['mysqlData'] is List) {
+      onProgress?.call("Loading vehicle models...", 0.6);
+      vehicleModelsModel = (vehicleModelResponse['mysqlData'] as List)
+          .map((e) => VehicleModelsModel.fromJson(e))
+          .toList();
+    }
 
-      if (lookupResponse['VehicleTypes'] is List) {
-        onProgress?.call("Loading vehicle types...", 0.65);
-        vehicleTypeModel = (lookupResponse['VehicleTypes'] as List)
-            .map((e) => VehicleTypeModel.fromJson(e))
-            .toList();
-      }
+    if (vehicleTypeResponse['data'] is List) {
+      onProgress?.call("Loading vehicle types...", 0.65);
+      vehicleTypeModel = (vehicleTypeResponse['data'] as List)
+          .map((e) => VehicleTypeModel.fromJson(e))
+          .toList();
+    }
 
-      if (lookupResponse['VehicleColors'] is List) {
-        onProgress?.call("Loading vehicle colors...", 0.7);
-        vehicleColorModel = (lookupResponse['VehicleColors'] as List)
-            .map((e) => VehicleColorModel.fromJson(e))
-            .toList();
-      }
+    if (vehicleColorResponse['data'] is List) {
+      onProgress?.call("Loading vehicle colors...", 0.7);
+      vehicleColorModel = (vehicleColorResponse['data'] as List)
+          .map((e) => VehicleColorModel.fromJson(e))
+          .toList();
+    }
 
-      if (lookupResponse['OffenceActs'] is List) {
-        onProgress?.call("Loading offence acts...", 0.75);
-        offenceActModel = (lookupResponse['OffenceActs'] as List)
-            .map((e) => OffenceActModel.fromJson(e))
-            .toList();
-      }
+    if (actResponse['data'] is List) {
+      onProgress?.call("Loading offence acts...", 0.75);
+      offenceActModel = (actResponse['data'] as List)
+          .map((e) => OffenceActModel.fromJson(e))
+          .toList();
+    }
 
-      if (lookupResponse['OffenceSections'] is List) {
-        onProgress?.call("Loading offence sections...", 0.8);
-        offenceSectionModel = (lookupResponse['OffenceSections'] as List)
-            .map((e) => OffenceSectionModel.fromJson(e))
-            .toList();
-      }
+    if (sectionResponse['data'] is List) {
+      onProgress?.call("Loading offence sections...", 0.8);
+      offenceSectionModel = (sectionResponse['data'] as List)
+          .map((e) => OffenceSectionModel.fromJson(e))
+          .toList();
+    }
 
-      if (lookupResponse['OffenceAreas'] is List) {
-        onProgress?.call("Loading offence areas...", 0.85);
-        offenceAreaModel = (lookupResponse['OffenceAreas'] as List)
-            .map((e) => OffenceAreaModel.fromJson(e))
-            .toList();
-      }
+    if (areaResponse['data'] is List) {
+      onProgress?.call("Loading offence areas...", 0.85);
+      offenceAreaModel = (areaResponse['data'] as List)
+          .map((e) => OffenceAreaModel.fromJson(e))
+          .toList();
+    }
 
-      if (lookupResponse['OffenceLocations'] is List) {
-        onProgress?.call("Loading offence locations...", 0.9);
-        offenceLocationModel = (lookupResponse['OffenceLocations'] as List)
-            .map((e) => OffenceLocationModel.fromJson(e))
-            .toList();
-      }
+    if (locationResponse['data'] is List) {
+      onProgress?.call("Loading offence locations...", 0.9);
+      offenceLocationModel = (locationResponse['data'] as List)
+          .map((e) => OffenceLocationModel.fromJson(e))
+          .toList();
     }
 
     return OffenceDataModel(

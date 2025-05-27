@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:eo_apk_mbk_v2/form_blocs/form_bloc.dart';
 import 'package:eo_apk_mbk_v2/helpers/compound_print_format.dart';
 import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
+import 'package:eo_apk_mbk_v2/helpers/theme.dart';
 import 'package:eo_apk_mbk_v2/helpers/validators.dart';
 import 'package:eo_apk_mbk_v2/models/models.dart';
 import 'package:eo_apk_mbk_v2/resources/resources.dart';
@@ -334,6 +335,17 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       final mac = await SharedPreferencesHelper.getPrinterMAC();
       final handheldId = await SharedPreferencesHelper.getHandheldId();
 
+      final witness = userModel.firstWhere(
+        (user) => user.userId == compoundModel.officerSaksi,
+        orElse: () => UserModel(), // Or handle null safely
+      );
+
+      final witnessName =
+          witness.fullName; // assuming UserModel has a `.name` field
+
+      final now = DateTime.now();
+      final formatted = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+
       if (mac['isMACSave'] == false) {
         emitFailure(
           failureResponse: jsonEncode({
@@ -471,55 +483,98 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
           emitFailure(
             failureResponse: jsonEncode({
               'type': 'print',
-              'message': 'Printing failed. Please try again.',
+              'message':
+                  'Printing failed. Please try again. You can check to Duplicate Copy the latest compound.',
             }),
           );
           return;
         }
 
-        // ✅ Continue to upload
-        final responseEnforcementCCP =
-            await UploadResources.uploadCompoundToEnforcementCCP(
-          prefix: 'UploadNotice',
-          body: {
-            'NoticeNo': compoundModel.noticeNo.toString(),
-            'VehicleNo': compoundModel.vehicleNo.toString(),
-            'OfficerID': compoundModel.officerId.toString(),
-            'OfficerUnit': compoundModel.officerUnit.toString(),
-            'HandheldCode': compoundModel.handheldCode.toString(),
-            'OffenceDateString': compoundModel.offenceDateString.toString(),
-            'VehicleType': compoundModel.vehicleType.toString(),
-            'VehicleColor': compoundModel.vehicleColor.toString(),
-            'VehicleMakeModel': compoundModel.vehicleMakeModel.toString(),
-            'RoadTaxNo': compoundModel.roadTaxNo.toString(),
-            'OffenceSectionCode': compoundModel.offenceSectionCode.toString(),
-            'OffenceArea': compoundModel.offenceArea.toString(),
-            'OffenceLocation': compoundModel.offenceLocation.toString(),
-            'OffenceLocationDetails':
-                compoundModel.offenceLocationDetails.toString(),
-            'SquarePoleNo': compoundModel.squarePoleNo.toString(),
-            'ImageName1': compoundModel.imageName1.toString(),
-            'ImageName2': compoundModel.imageName2.toString(),
-            'ImageName3': compoundModel.imageName3.toString(),
-            'ImageName4': compoundModel.imageName4.toString(),
-            'ImageName5': compoundModel.imageName5.toString(),
-            'IsClamping': compoundModel.isClamping.toString(),
-            'Notes': compoundModel.notes.toString(),
-            'Latitude': compoundModel.latitude,
-            'Longitude': compoundModel.longitude,
-            'CompoundAmount': compoundModel.compoundAmount,
-            'OfficerSaksi': compoundModel.officerSaksi.toString(),
-          },
+        final responsePahangGo = await UploadResources.uploadCompoundToPahangGo(
+            prefix: 'compound/parking',
+            body: {
+              'compound_number': compoundModel.noticeNo,
+              'act_id': actLaw.value!.code!,
+              'offence_id': section.value!.code!,
+              'zone_id': area.value!.code!,
+              'area_id': placement.value!.code!,
+              'vehicle_type': compoundModel.vehicleType,
+              'vehicle_model': compoundModel.vehicleMakeModel,
+              'color': compoundModel.vehicleColor,
+              'plate_number': compoundModel.vehicleNo,
+              'road_tax_number': compoundModel.roadTaxNo,
+              'parking_lot_number': compoundModel.squarePoleNo,
+              'street_name': compoundModel.offenceArea,
+              'offence_location': compoundModel.offenceLocation,
+              'offence_datetime':
+                  formatOffenceDatePahangGo(compoundModel.offenceDateString!),
+              'witness_code': compoundModel.officerSaksi,
+              'witness_name': witnessName,
+              'enforcer_code': compoundModel.officerId,
+              'enforcer_name': officerData['name'],
+              'status': 0,
+              'status_time': formatted,
+            });
+
+        await SharedPreferencesHelper.saveIdsByNoticeNo(
+          noticeNo: compoundModel.noticeNo!,
+          actId: actLaw.value!.code!,
+          offenceId: section.value!.code!,
+          areaId: area.value!.code!,
+          zoneId: placement.value!.code!,
         );
 
-        if (responseEnforcementCCP['StatusDescription'] == null) {
-          await SharedPreferencesHelper.saveOfficerCompoundModel(compoundModel);
-          await SharedPreferencesHelper.removeOfficerCompoundPendingByNoticeNo(
-              compoundModel.noticeNo!);
-          emitSuccess(); // 🎉 SUCCESS finally happens here
+        if (responsePahangGo['status'] == true) {
+          // ✅ Continue to upload
+          final responseEnforcementCCP =
+              await UploadResources.uploadCompoundToEnforcementCCP(
+            prefix: 'UploadNotice',
+            body: {
+              'NoticeNo': compoundModel.noticeNo.toString(),
+              'VehicleNo': compoundModel.vehicleNo.toString(),
+              'OfficerID': compoundModel.officerId.toString(),
+              'OfficerUnit': compoundModel.officerUnit.toString(),
+              'HandheldCode': compoundModel.handheldCode.toString(),
+              'OffenceDateString': compoundModel.offenceDateString.toString(),
+              'VehicleType': compoundModel.vehicleType.toString(),
+              'VehicleColor': compoundModel.vehicleColor.toString(),
+              'VehicleMakeModel': compoundModel.vehicleMakeModel.toString(),
+              'RoadTaxNo': compoundModel.roadTaxNo.toString(),
+              'OffenceSectionCode': compoundModel.offenceSectionCode.toString(),
+              'OffenceArea': compoundModel.offenceArea.toString(),
+              'OffenceLocation': compoundModel.offenceLocation.toString(),
+              'OffenceLocationDetails':
+                  compoundModel.offenceLocationDetails.toString(),
+              'SquarePoleNo': compoundModel.squarePoleNo.toString(),
+              'ImageName1': compoundModel.imageName1.toString(),
+              'ImageName2': compoundModel.imageName2.toString(),
+              'ImageName3': compoundModel.imageName3.toString(),
+              'ImageName4': compoundModel.imageName4.toString(),
+              'ImageName5': compoundModel.imageName5.toString(),
+              'IsClamping': compoundModel.isClamping.toString(),
+              'Notes': compoundModel.notes.toString(),
+              'Latitude': compoundModel.latitude,
+              'Longitude': compoundModel.longitude,
+              'CompoundAmount': compoundModel.compoundAmount,
+              'OfficerSaksi': compoundModel.officerSaksi.toString(),
+            },
+          );
+
+          if (responseEnforcementCCP['StatusDescription'] == null) {
+            await SharedPreferencesHelper.saveOfficerCompoundModel(
+                compoundModel);
+            await SharedPreferencesHelper
+                .removeOfficerCompoundPendingByNoticeNo(
+                    compoundModel.noticeNo!);
+            emitSuccess(); // 🎉 SUCCESS finally happens here
+          } else {
+            emitFailure(
+                failureResponse: responseEnforcementCCP['StatusDescription']);
+          }
         } else {
           emitFailure(
-              failureResponse: responseEnforcementCCP['StatusDescription']);
+              failureResponse: responsePahangGo['message'] ??
+                  'Failed to upload to Pahang Go. Please try again.');
         }
       }
     } catch (e) {

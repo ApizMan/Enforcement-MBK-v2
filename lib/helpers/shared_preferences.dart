@@ -391,4 +391,35 @@ class SharedPreferencesHelper {
       }
     }
   }
+
+  static Future<void> saveIdsByNoticeNo({
+    required String noticeNo,
+    required int actId,
+    required int offenceId,
+    required int areaId,
+    required int zoneId,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Create a map of the IDs
+    final data = {
+      'act_id': actId,
+      'offence_id': offenceId,
+      'area_id': areaId,
+      'zone_id': zoneId,
+    };
+
+    // Save as JSON string using noticeNo as the key
+    await prefs.setString('${compoundIdKey}_$noticeNo', jsonEncode(data));
+  }
+
+  static Future<Map<String, dynamic>?> getIdsByNoticeNo(String noticeNo) async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString('${compoundIdKey}_$noticeNo');
+
+    if (jsonString != null) {
+      return jsonDecode(jsonString);
+    }
+    return null;
+  }
 }
