@@ -162,6 +162,7 @@ class _SidebarLayoutState extends State<SidebarLayout> {
               context,
               dialogType: 2,
               icon: Icons.warning,
+              isDissmissable: false,
               title: AppLocalizations.of(context)!.logout,
               description: AppLocalizations.of(context)!.logoutDesc,
               btnOkText: AppLocalizations.of(context)!.yes,

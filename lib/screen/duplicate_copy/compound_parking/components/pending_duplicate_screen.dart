@@ -88,7 +88,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
     final paths =
         await SharedPreferencesHelper.getCapturedImagePathsPending(noticeNo);
 
-    // Filter non-null and non-empty paths
+    // Filter non-empty paths
     final validPaths = paths.where((path) => path.isNotEmpty).toList();
 
     for (String? path in validPaths) {
@@ -103,7 +103,9 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
         final Uint8List? compressedBytes =
             await FlutterImageCompress.compressWithFile(
           file.path,
-          quality: 70,
+          quality: 60, // Adjust for smaller size
+          minWidth: 720,
+          minHeight: 720,
         );
 
         if (compressedBytes == null) {
@@ -111,56 +113,51 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
           continue;
         }
 
-        // ✅ Encode to Base64
-        final base64String = base64Encode(compressedBytes);
+        // ✅ Log sizes
         final fileName = path.split('/').last;
+        final base64String = base64Encode(compressedBytes);
+
+        final compressedSizeMB = compressedBytes.lengthInBytes / 1024 / 1024;
+        final base64SizeMB = base64String.length / 1024 / 1024;
+
+        debugPrint(
+            '📦 Compressed size for $fileName: ${compressedSizeMB.toStringAsFixed(2)} MB');
+        debugPrint(
+            '🧬 Base64 size for $fileName: ${base64SizeMB.toStringAsFixed(2)} MB');
+
+        // ✅ Skip if too big
+        if (compressedSizeMB > 37.5 || base64SizeMB > 50) {
+          debugPrint(
+              '⚠️ Skipping $fileName — exceeds 50MB Base64 or 37.5MB binary limit');
+          continue;
+        }
 
         // ✅ Upload to first server
         final response = await UploadResources.uploadImage(
-          prefix: '/UploadImageString',
+          prefix: '/compound/upload-image',
           body: {
             'ImageName': fileName,
             'ImageData': base64String,
           },
         );
 
-        bool uploadedToFirst = response['StatusCode'] == 200 ||
-            response['StatusCode'] == '200' ||
-            response['StatusDescription'] == null;
+        final uploadedToFirst = response['StatusCode'] == 'Success';
 
-        if (!uploadedToFirst) {
+        if (uploadedToFirst) {
+          debugPrint('✅ Uploaded $fileName to first server');
+        } else {
           debugPrint(
               '❌ First upload failed for $fileName: ${response['StatusDescription']}');
-        } else {
-          debugPrint('✅ Uploaded $fileName to first server');
-        }
-
-        // ✅ Upload to second server if first failed or always (optional)
-        final responseEnYasin = await UploadResources.uploadImageEnYasin(
-          prefix: '/UploadImageString',
-          body: {
-            'ImageName': fileName,
-            'ImageData': base64String,
-          },
-        );
-
-        bool uploadedToSecond = responseEnYasin['StatusCode'] == 200 ||
-            responseEnYasin['StatusCode'] == '200' ||
-            responseEnYasin['StatusDescription'] == null;
-
-        if (!uploadedToSecond) {
-          debugPrint(
-              '❌ Second upload failed for $fileName: ${responseEnYasin['StatusDescription']}');
-        } else {
-          debugPrint('✅ Uploaded $fileName to EnYasin server');
         }
       } catch (e) {
+        debugPrint('❌ Upload failed: $e');
         CustomDialog.show(
           context,
+          isDissmissable: false,
           dialogType: DialogType.danger,
           icon: Icons.cloud_off,
           title: "Ralat Internet",
-          description: 'Please check your internet connection.',
+          description: '❌ Upload failed: $e',
           btnOkText: "OK",
           btnOkOnPress: () => Navigator.pop(context),
         );
@@ -190,7 +187,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
       return false;
     }
 
-    // Retry loop until valid image is captured
+    // 📸 Retry loop until image is captured
     XFile? pickedFile;
     while (pickedFile == null) {
       pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
@@ -215,40 +212,55 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
       }
     }
 
+    // 📦 Compress the image
     final Uint8List? compressedBytes =
         await FlutterImageCompress.compressWithFile(
       pickedFile.path,
-      quality: 70,
+      quality: 60,
+      minWidth: 720,
+      minHeight: 720,
     );
 
     if (compressedBytes == null) return false;
 
-    final String base64String = base64Encode(compressedBytes);
+    final base64String = base64Encode(compressedBytes);
 
+    final compressedSizeMB = compressedBytes.lengthInBytes / 1024 / 1024;
+    final base64SizeMB = base64String.length / 1024 / 1024;
+
+    debugPrint('📦 Compressed size: ${compressedSizeMB.toStringAsFixed(2)} MB');
+    debugPrint('🧬 Base64 size: ${base64SizeMB.toStringAsFixed(2)} MB');
+
+    // 🚫 Skip if too big
+    if (compressedSizeMB > 37.5 || base64SizeMB > 50) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Image is too large. Try again.')),
+      );
+      return false;
+    }
+
+    // 🖼️ Upload image
     final imageIndex = 'AfterCompound';
     final fileName = '${noticeNo}Pic$imageIndex.jpg';
 
     final responseUploadImage = await UploadResources.uploadImage(
-      prefix: 'UploadImageString',
+      prefix: '/compound/upload-image',
       body: {
         'ImageName': fileName,
         'ImageData': base64String,
       },
     );
 
-    if (responseUploadImage['StatusDescription'] == null) {
+    if (responseUploadImage['StatusCode'] == "Success") {
       final response = await CompoundResources.updateImageAfter(
-          prefix: '/picture-after-compound/$noticeNo',
-          body: {
-            'pictureName': fileName,
-          });
+        prefix: '/compound/picture-after/$noticeNo',
+        body: {'pictureName': fileName},
+      );
 
-      if (response['success'] == true) {
-        return true;
-      } else {
-        return false;
-      }
+      return response['success'] == true;
     } else {
+      debugPrint(
+          '❌ Upload failed: ${responseUploadImage['StatusDescription']}');
       return false;
     }
   }
@@ -329,6 +341,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                                   CustomDialog.show(
                                     context,
                                     dialogType: DialogType.danger,
+                                    isDissmissable: false,
                                     icon: Icons.cloud_off,
                                     title: "Tiada Internet",
                                     description:
@@ -357,6 +370,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                                   CustomDialog.show(
                                     context,
                                     dialogType: DialogType.danger,
+                                    isDissmissable: false,
                                     icon: Icons.error_rounded,
                                     title:
                                         AppLocalizations.of(context)!.warning,
@@ -383,6 +397,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                                           context,
                                           dialogType: DialogType.info,
                                           icon: Icons.done,
+                                          isDissmissable: false,
                                           title: AppLocalizations.of(context)!
                                               .successUploaded,
                                           description:
@@ -422,6 +437,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                                         CustomDialog.show(
                                           context,
                                           dialogType: DialogType.danger,
+                                          isDissmissable: false,
                                           icon: Icons.cloud_off,
                                           title: "Ralat Internet",
                                           description:
@@ -446,6 +462,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                                   CustomDialog.show(
                                     context,
                                     dialogType: DialogType.info,
+                                    isDissmissable: false,
                                     icon: Icons.done,
                                     title: AppLocalizations.of(context)!
                                         .successUploaded,
@@ -485,6 +502,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                                 CustomDialog.show(
                                   context,
                                   dialogType: DialogType.danger,
+                                  isDissmissable: false,
                                   icon: Icons.cloud_off,
                                   title: "Ralat Sistem",
                                   description:
@@ -586,6 +604,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                                             CustomDialog.show(
                                               context,
                                               dialogType: DialogType.info,
+                                              isDissmissable: false,
                                               icon: Icons.done,
                                               title:
                                                   AppLocalizations.of(context)!
@@ -704,7 +723,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
       final officerData = await SharedPreferencesHelper.getLoginCredential();
 
       final witness = widget.userModel.firstWhere(
-        (user) => user.id == notice.officerSaksi,
+        (user) => user.userId == notice.officerSaksi,
         orElse: () => UserModel(), // Or handle null safely
       );
 
@@ -723,8 +742,8 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
             'compound_number': notice.noticeNo,
             'act_id': idByNoticeNo!['act_id'],
             'offence_id': idByNoticeNo['offence_id'],
-            'area_id': idByNoticeNo['area_id'],
-            'zone_id': idByNoticeNo['zone_id'],
+            'area_id': idByNoticeNo['zone_id'],
+            'zone_id': idByNoticeNo['area_id'],
             'vehicle_type': notice.vehicleType,
             'vehicle_model': notice.vehicleMakeModel,
             'color': notice.vehicleColor,
@@ -746,7 +765,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
       if (responsePahangGo['status'] == true) {
         final responseEnforcementCCP =
             await UploadResources.uploadCompoundToEnforcementCCP(
-                prefix: 'UploadNotice',
+                prefix: '/compound/upload',
                 body: {
               'NoticeNo': notice.noticeNo.toString(),
               'VehicleNo': notice.vehicleNo.toString(),
@@ -769,7 +788,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
               'ImageName3': notice.imageName3.toString(),
               'ImageName4': notice.imageName4.toString(),
               'ImageName5': notice.imageName5.toString(),
-              'IsClamping': notice.isClamping.toString(),
+              'IsClamping': notice.isClamping,
               'Notes': notice.notes.toString(),
               'Latitude': notice.latitude,
               'Longitude': notice.longitude,
@@ -777,7 +796,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
               'OfficerSaksi': notice.officerSaksi.toString(),
             });
 
-        if (responseEnforcementCCP['StatusDescription'] == null) {
+        if (responseEnforcementCCP['StatusCode'] == 'Success') {
           await SharedPreferencesHelper.saveOfficerCompoundModel(notice);
 
           await SharedPreferencesHelper.removeOfficerCompoundPendingByNoticeNo(
@@ -789,6 +808,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
           CustomDialog.show(
             context,
             dialogType: DialogType.danger,
+            isDissmissable: false,
             icon: Icons.warning,
             title: AppLocalizations.of(context)!.warning,
             description: responseEnforcementCCP['StatusDescription'],
@@ -800,6 +820,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
         CustomDialog.show(
           context,
           dialogType: DialogType.danger,
+          isDissmissable: false,
           icon: Icons.warning,
           title: AppLocalizations.of(context)!.warning,
           description: responsePahangGo['message'] ??
@@ -812,9 +833,10 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
       CustomDialog.show(
         context,
         dialogType: DialogType.danger,
+        isDissmissable: false,
         icon: Icons.cloud_off,
         title: "Ralat Internet",
-        description: 'Please check your internet connection.',
+        description: 'Error: $e',
         btnOkText: "OK",
         btnOkOnPress: () => Navigator.pop(context),
       );

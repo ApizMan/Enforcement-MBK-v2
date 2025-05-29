@@ -6,17 +6,7 @@ class UploadResources {
   static Future uploadImage(
       {required String prefix, required Object body}) async {
     var response = await http.post(
-      Uri.parse('$baseUrl$prefix'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode(body),
-    );
-    return json.decode(response.body);
-  }
-
-  static Future uploadImageEnYasin(
-      {required String prefix, required Object body}) async {
-    var response = await http.post(
-      Uri.parse('$myEnfocementEnYasinUrl$prefix'),
+      Uri.parse('$backendUrl$prefix'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode(body),
     );
@@ -26,7 +16,7 @@ class UploadResources {
   static Future uploadCompoundToEnforcementCCP(
       {required String prefix, required Object body}) async {
     var response = await http.post(
-      Uri.parse('$baseUrl$prefix'),
+      Uri.parse('$backendUrl$prefix'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode(body),
     );

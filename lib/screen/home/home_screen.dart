@@ -124,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return false;
     }
 
-    // Retry loop until valid image is captured
+    // 📸 Retry loop until image is captured
     XFile? pickedFile;
     while (pickedFile == null) {
       pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
@@ -149,16 +149,33 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
+    // 📦 Compress the image
     final Uint8List? compressedBytes =
         await FlutterImageCompress.compressWithFile(
       pickedFile.path,
-      quality: 70,
+      quality: 60, // reduced quality
+      minWidth: 720, // resize width
+      minHeight: 720, // resize height
     );
 
     if (compressedBytes == null) return false;
 
-    final String base64String = base64Encode(compressedBytes);
+    final base64String = base64Encode(compressedBytes);
+    final compressedSizeMB = compressedBytes.lengthInBytes / 1024 / 1024;
+    final base64SizeMB = base64String.length / 1024 / 1024;
 
+    debugPrint('📦 Compressed size: ${compressedSizeMB.toStringAsFixed(2)} MB');
+    debugPrint('🧬 Base64 size: ${base64SizeMB.toStringAsFixed(2)} MB');
+
+    // 🚫 Skip if image too large
+    if (compressedSizeMB > 37.5 || base64SizeMB > 50) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Image is too large. Please try again.')),
+      );
+      return false;
+    }
+
+    // 🏷️ Prepare image name
     final handheldCode = await SharedPreferencesHelper.getHandheldId();
     final year = DateTime.now().year.toString().substring(2);
     int serial = await SharedPreferencesHelper.getNoticeSerialNumber();
@@ -167,8 +184,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final imageIndex = 'AfterCompound';
     final fileName = '$handheldCode$year${paddedSerial}Pic$imageIndex.jpg';
 
+    // ☁️ Upload image
     final responseUploadImage = await UploadResources.uploadImage(
-      prefix: 'UploadImageString',
+      prefix: '/compound/upload-image',
       body: {
         'ImageName': fileName,
         'ImageData': base64String,
@@ -177,19 +195,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final compoundName = '$handheldCode$year$paddedSerial';
 
-    if (responseUploadImage['StatusDescription'] == null) {
+    if (responseUploadImage['StatusCode'] == "Success") {
       final response = await CompoundResources.updateImageAfter(
-          prefix: '/picture-after-compound/$compoundName',
-          body: {
-            'pictureName': fileName,
-          });
+        prefix: '/compound/picture-after/$compoundName',
+        body: {
+          'pictureName': fileName,
+        },
+      );
 
-      if (response['success'] == true) {
-        return true;
-      } else {
-        return false;
-      }
+      return response['success'] == true;
     } else {
+      debugPrint(
+          '❌ Upload failed: ${responseUploadImage['StatusDescription']}');
       return false;
     }
   }
@@ -263,6 +280,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     CustomDialog.show(
                       context,
                       dialogType: DialogType.danger,
+                      isDissmissable: false,
                       icon: Icons.warning,
                       title: AppLocalizations.of(context)!.warning,
                       description: state.failureResponse,
@@ -334,6 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         CustomDialog.show(
                           context,
                           dialogType: DialogType.info,
+                          isDissmissable: false,
                           icon: Icons.done,
                           title:
                               AppLocalizations.of(context)!.compoundSuccessDesc,
@@ -363,6 +382,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           context,
                           dialogType: DialogType.danger,
                           icon: Icons.warning,
+                          isDissmissable: false,
                           title: AppLocalizations.of(context)!.warning,
                           description: 'Error Upload Image After Compound',
                           btnOkText: AppLocalizations.of(context)!.ok,
@@ -391,6 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         context,
                         dialogType: DialogType.danger,
                         icon: Icons.warning,
+                        isDissmissable: false,
                         title: AppLocalizations.of(context)!.warning,
                         description: 'Error Upload Image Before Compound',
                         btnOkText: AppLocalizations.of(context)!.ok,
@@ -435,6 +456,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             CustomDialog.show(
                               context,
                               dialogType: DialogType.danger,
+                              isDissmissable: false,
                               icon: Icons.warning,
                               title: AppLocalizations.of(context)!.warning,
                               description: message,
@@ -447,6 +469,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             CustomDialog.show(
                               context,
                               dialogType: DialogType.danger,
+                              isDissmissable: false,
                               icon: Icons.copy,
                               title: "Salinan Duplikasi",
                               description: message,
@@ -475,6 +498,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             CustomDialog.show(
                               context,
                               dialogType: DialogType.danger,
+                              isDissmissable: false,
                               icon: Icons.cloud_off,
                               title: "Ralat Internet",
                               description: message,
@@ -503,6 +527,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             CustomDialog.show(
                               context,
                               dialogType: DialogType.danger,
+                              isDissmissable: false,
                               icon: Icons.print,
                               title: "Ralat Cetak",
                               description: message,
@@ -531,6 +556,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             CustomDialog.show(
                               context,
                               dialogType: DialogType.danger,
+                              isDissmissable: false,
                               icon: Icons.print,
                               title: "Ralat Printer",
                               description: message,
@@ -549,6 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             CustomDialog.show(
                               context,
                               dialogType: DialogType.danger,
+                              isDissmissable: false,
                               icon: Icons.warning,
                               title: AppLocalizations.of(context)!.warning,
                               description: message,
@@ -561,6 +588,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         CustomDialog.show(
                           context,
                           dialogType: DialogType.danger,
+                          isDissmissable: false,
                           icon: Icons.warning,
                           title: AppLocalizations.of(context)!.warning,
                           description: failure,
@@ -657,6 +685,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return CustomDialog.show(
       context,
       dialogType: DialogType.danger,
+      isDissmissable: false,
       icon: Icons.warning,
       title: AppLocalizations.of(context)!.warning,
       description: message,
@@ -670,59 +699,67 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Filter non-null and non-empty paths
     final validPaths =
-        paths.where((path) => path != null && path.isNotEmpty).toList();
+        paths.whereType<String>().where((path) => path.isNotEmpty).toList();
 
-    for (String? path in validPaths) {
-      final file = File(path!);
-      if (await file.exists()) {
+    bool hasSuccess = false;
+
+    for (final path in validPaths) {
+      try {
+        final file = File(path);
+        if (!await file.exists()) {
+          debugPrint('❌ File not found: $path');
+          continue;
+        }
+
         // ✅ Compress image
         final Uint8List? compressedBytes =
             await FlutterImageCompress.compressWithFile(
           file.path,
-          quality: 70,
+          quality: 60,
+          minWidth: 720,
+          minHeight: 720,
         );
 
         if (compressedBytes == null) {
-          debugPrint('❌ Failed to compress $path');
-          return false;
+          debugPrint('❌ Failed to compress: $path');
+          continue;
         }
 
-        // ✅ Encode to base64
         final base64String = base64Encode(compressedBytes);
-        final fileName = path.split('/').last;
+        final compressedSizeMB = compressedBytes.lengthInBytes / 1024 / 1024;
+        final base64SizeMB = base64String.length / 1024 / 1024;
 
+        debugPrint(
+            '📦 Compressed size: ${compressedSizeMB.toStringAsFixed(2)} MB');
+        debugPrint('🧬 Base64 size: ${base64SizeMB.toStringAsFixed(2)} MB');
+
+        // 🚫 Skip if image too large
+        if (compressedSizeMB > 37.5 || base64SizeMB > 50) {
+          debugPrint('⚠️ Skipping $path — exceeds upload size limit');
+          continue;
+        }
+
+        final fileName = path.split('/').last;
         final response = await UploadResources.uploadImage(
-          prefix: '/UploadImageString',
+          prefix: '/compound/upload-image',
           body: {
             'ImageName': fileName,
             'ImageData': base64String,
           },
         );
 
-        if (response['StatusDescription'] == null) {
-          final responseEnYasin = await UploadResources.uploadImageEnYasin(
-            prefix: '/UploadImageString',
-            body: {
-              'ImageName': fileName,
-              'ImageData': base64String,
-            },
-          );
-
-          if (responseEnYasin['StatusCode'] != null) {
-            debugPrint('❌ Failed to upload $fileName to EnYasin');
-            debugPrint('Response: ${responseEnYasin['StatusDescription']}');
-            return false;
-          }
-
+        if (response['StatusCode'] == "Success") {
           debugPrint('✅ Uploaded $fileName successfully');
+          hasSuccess = true;
         } else {
           debugPrint('❌ Failed to upload $fileName');
-          debugPrint('Response: ${response.body}');
-          return false;
+          debugPrint('🛑 Server response: ${response['StatusDescription']}');
         }
+      } catch (e) {
+        debugPrint('❌ Exception while processing $path: $e');
       }
     }
 
-    return true;
+    return hasSuccess;
   }
 }

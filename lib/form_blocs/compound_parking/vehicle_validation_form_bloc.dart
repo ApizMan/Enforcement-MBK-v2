@@ -44,7 +44,7 @@ class VehicleValidationFormBloc extends FormBloc<String, String> {
       );
 
       if (response != null && response is Map<String, dynamic>) {
-        final statusDescription = response['StatusDescription'];
+        final statusDescription = response['statusDescription'];
         final error = response['error'];
 
         if (statusDescription != null && statusDescription is String) {

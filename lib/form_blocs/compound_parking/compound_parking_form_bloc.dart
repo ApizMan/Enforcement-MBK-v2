@@ -490,6 +490,14 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
           return;
         }
 
+        await SharedPreferencesHelper.saveIdsByNoticeNo(
+          noticeNo: compoundModel.noticeNo!,
+          actId: actLaw.value!.code!,
+          offenceId: section.value!.code!,
+          areaId: area.value!.code!,
+          zoneId: placement.value!.code!,
+        );
+
         final responsePahangGo = await UploadResources.uploadCompoundToPahangGo(
             prefix: 'compound/parking',
             body: {
@@ -516,19 +524,11 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
               'status_time': formatted,
             });
 
-        await SharedPreferencesHelper.saveIdsByNoticeNo(
-          noticeNo: compoundModel.noticeNo!,
-          actId: actLaw.value!.code!,
-          offenceId: section.value!.code!,
-          areaId: area.value!.code!,
-          zoneId: placement.value!.code!,
-        );
-
         if (responsePahangGo['status'] == true) {
           // ✅ Continue to upload
           final responseEnforcementCCP =
               await UploadResources.uploadCompoundToEnforcementCCP(
-            prefix: 'UploadNotice',
+            prefix: '/compound/upload',
             body: {
               'NoticeNo': compoundModel.noticeNo.toString(),
               'VehicleNo': compoundModel.vehicleNo.toString(),
@@ -551,7 +551,7 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
               'ImageName3': compoundModel.imageName3.toString(),
               'ImageName4': compoundModel.imageName4.toString(),
               'ImageName5': compoundModel.imageName5.toString(),
-              'IsClamping': compoundModel.isClamping.toString(),
+              'IsClamping': compoundModel.isClamping,
               'Notes': compoundModel.notes.toString(),
               'Latitude': compoundModel.latitude,
               'Longitude': compoundModel.longitude,
@@ -560,7 +560,7 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
             },
           );
 
-          if (responseEnforcementCCP['StatusDescription'] == null) {
+          if (responseEnforcementCCP['StatusCode'] == 'Success') {
             await SharedPreferencesHelper.saveOfficerCompoundModel(
                 compoundModel);
             await SharedPreferencesHelper
