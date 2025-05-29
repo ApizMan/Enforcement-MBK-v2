@@ -33,7 +33,7 @@
 
 
     <application
-        android:label="eo_apk_mbk_v2"
+        android:label="Handheld"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"

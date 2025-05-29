@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 
 class GalleryManager {
-  static const _channel = MethodChannel('com.example.eo_apk_mbk_v2/gallery');
+  static const _channel = MethodChannel('com.vista.eo_apk_mbk_v2/gallery');
 
   static Future<bool> deleteImageFromGallery(String fileName) async {
     try {
