@@ -17,7 +17,7 @@ class FooterLayout extends StatelessWidget {
         children: [
           Text(handHeldId, style: textStyleNormal(fontWeight: FontWeight.bold)),
           Text(
-            "Version 3.21 powered by CCP",
+            "Version ${versionAPK} powered by CCP",
             style: textStyleNormal(fontSize: 10),
           ),
         ],

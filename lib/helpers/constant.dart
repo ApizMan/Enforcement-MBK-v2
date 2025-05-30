@@ -86,3 +86,5 @@ const kTextInfo = Color.fromRGBO(236, 253, 245, 1.0);
 
 const double hasBottomAppBarSize = 48;
 const double noBottomAppBarSize = 10;
+
+const String versionAPK = '1.0.0';

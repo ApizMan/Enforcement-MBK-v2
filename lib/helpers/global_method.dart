@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
 import 'package:eo_apk_mbk_v2/models/models.dart';
@@ -8,22 +7,18 @@ Future<OffenceDataModel> fetchOffenceAreasList({
   void Function(String, double)? onProgress,
 }) async {
   final deviceInfo = DeviceInfoPlugin();
-  String? deviceId;
 
   onProgress?.call("Detecting device info...", 0.15);
 
-  if (Platform.isAndroid) {
-    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-    deviceId = androidInfo.id;
-  } else if (Platform.isIOS) {
-    IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-    deviceId = iosInfo.identifierForVendor;
-  }
+  AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+
+  // ✅ Get bootloader
+  String display = androidInfo.display;
 
   onProgress?.call("Registering handheld...", 0.25);
 
   final response = await OffenceResources.getDevice(
-    prefix: '/compound/register/$deviceId',
+    prefix: '/compound/register/$display',
   );
 
   if (response != null && response['handheldCode'] != null) {
