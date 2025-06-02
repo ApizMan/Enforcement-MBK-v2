@@ -494,8 +494,8 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
           noticeNo: compoundModel.noticeNo!,
           actId: actLaw.value!.code!,
           offenceId: section.value!.code!,
-          areaId: area.value!.code!,
-          zoneId: placement.value!.code!,
+          areaId: 72,
+          zoneId: area.value!.code!,
         );
 
         final responsePahangGo = await UploadResources.uploadCompoundToPahangGo(
@@ -505,7 +505,7 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
               'act_id': actLaw.value!.code!,
               'offence_id': section.value!.code!,
               'zone_id': area.value!.code!,
-              'area_id': placement.value!.code!,
+              'area_id': 72,
               'vehicle_type': compoundModel.vehicleType,
               'vehicle_model': compoundModel.vehicleMakeModel,
               'color': compoundModel.vehicleColor,
