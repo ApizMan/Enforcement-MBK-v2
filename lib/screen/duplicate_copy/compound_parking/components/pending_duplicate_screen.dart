@@ -103,7 +103,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
         final Uint8List? compressedBytes =
             await FlutterImageCompress.compressWithFile(
           file.path,
-          quality: 60,
+          quality: 40,
           minWidth: 720,
           minHeight: 720,
         );
@@ -238,7 +238,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
     final Uint8List? compressedBytes =
         await FlutterImageCompress.compressWithFile(
       pickedFile.path,
-      quality: 60,
+      quality: 40,
       minWidth: 720,
       minHeight: 720,
     );
