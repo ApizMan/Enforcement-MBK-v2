@@ -88,8 +88,9 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
     final paths =
         await SharedPreferencesHelper.getCapturedImagePathsPending(noticeNo);
 
-    // Filter non-empty paths
     final validPaths = paths.where((path) => path.isNotEmpty).toList();
+
+    List<File> compressedImagesForPahangGo = [];
 
     for (String? path in validPaths) {
       try {
@@ -99,11 +100,10 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
           continue;
         }
 
-        // ✅ Compress the image
         final Uint8List? compressedBytes =
             await FlutterImageCompress.compressWithFile(
           file.path,
-          quality: 60, // Adjust for smaller size
+          quality: 60,
           minWidth: 720,
           minHeight: 720,
         );
@@ -113,7 +113,6 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
           continue;
         }
 
-        // ✅ Log sizes
         final fileName = path.split('/').last;
         final base64String = base64Encode(compressedBytes);
 
@@ -125,14 +124,12 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
         debugPrint(
             '🧬 Base64 size for $fileName: ${base64SizeMB.toStringAsFixed(2)} MB');
 
-        // ✅ Skip if too big
         if (compressedSizeMB > 37.5 || base64SizeMB > 50) {
-          debugPrint(
-              '⚠️ Skipping $fileName — exceeds 50MB Base64 or 37.5MB binary limit');
+          debugPrint('⚠️ Skipping $fileName — exceeds limits');
           continue;
         }
 
-        // ✅ Upload to first server
+        // ✅ Upload to First Server
         final response = await UploadResources.uploadImage(
           prefix: '/compound/upload-image',
           body: {
@@ -145,6 +142,11 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
 
         if (uploadedToFirst) {
           debugPrint('✅ Uploaded $fileName to first server');
+
+          // Save compressed image to temp file for PahangGo
+          final tempPath = '${file.parent.path}/compressed_$fileName';
+          final tempFile = await File(tempPath).writeAsBytes(compressedBytes);
+          compressedImagesForPahangGo.add(tempFile);
         } else {
           debugPrint(
               '❌ First upload failed for $fileName: ${response['StatusDescription']}');
@@ -162,6 +164,28 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
           btnOkOnPress: () => Navigator.pop(context),
         );
       }
+    }
+
+    // ✅ Upload to PahangGo only if there are valid images
+    if (compressedImagesForPahangGo.isNotEmpty) {
+      try {
+        final respondImagePahangGo = await UploadResources.uploadImagePahangGo(
+          prefix: 'compound/pictures',
+          compoundNumber: noticeNo,
+          pictures: compressedImagesForPahangGo,
+        );
+
+        if (respondImagePahangGo['status'] == true) {
+          debugPrint('✅ Successfully uploaded to PahangGo');
+        } else {
+          debugPrint(
+              '❌ PahangGo upload failed: ${respondImagePahangGo['message']}');
+        }
+      } catch (e) {
+        debugPrint('❌ PahangGo upload error: $e');
+      }
+    } else {
+      debugPrint('⚠️ No valid images to upload to PahangGo');
     }
   }
 
@@ -187,7 +211,6 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
       return false;
     }
 
-    // 📸 Retry loop until image is captured
     XFile? pickedFile;
     while (pickedFile == null) {
       pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
@@ -212,7 +235,6 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
       }
     }
 
-    // 📦 Compress the image
     final Uint8List? compressedBytes =
         await FlutterImageCompress.compressWithFile(
       pickedFile.path,
@@ -231,7 +253,6 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
     debugPrint('📦 Compressed size: ${compressedSizeMB.toStringAsFixed(2)} MB');
     debugPrint('🧬 Base64 size: ${base64SizeMB.toStringAsFixed(2)} MB');
 
-    // 🚫 Skip if too big
     if (compressedSizeMB > 37.5 || base64SizeMB > 50) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Image is too large. Try again.')),
@@ -239,7 +260,6 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
       return false;
     }
 
-    // 🖼️ Upload image
     final imageIndex = 'AfterCompound';
     final fileName = '${noticeNo}Pic$imageIndex.jpg';
 
@@ -257,10 +277,28 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
         body: {'pictureName': fileName},
       );
 
+      // ✅ Upload compressed image to PahangGo
+      final tempFilePath =
+          '${File(pickedFile.path).parent.path}/compressed_$fileName';
+      final compressedFile =
+          await File(tempFilePath).writeAsBytes(compressedBytes);
+
+      final pahangGoResponse = await UploadResources.uploadImagePahangGo(
+        prefix: 'compound/pictures',
+        compoundNumber: noticeNo,
+        pictures: [compressedFile],
+      );
+
+      if (pahangGoResponse['status'] == true) {
+        debugPrint('✅ Uploaded to PahangGo');
+      } else {
+        debugPrint('❌ PahangGo upload failed: ${pahangGoResponse['message']}');
+      }
+
       return response['success'] == true;
     } else {
       debugPrint(
-          '❌ Upload failed: ${responseUploadImage['StatusDescription']}');
+          '❌ First upload failed: ${responseUploadImage['StatusDescription']}');
       return false;
     }
   }

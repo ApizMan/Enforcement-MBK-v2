@@ -16,6 +16,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_media_delete/flutter_media_delete.dart';
 import 'package:flutter_media_store/flutter_media_store.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:ntp/ntp.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class CameraScreen extends StatefulWidget {
@@ -120,7 +121,15 @@ class _CameraScreenState extends State<CameraScreen> {
     }
 
     final handheldCode = await SharedPreferencesHelper.getHandheldId();
-    final year = DateTime.now().year.toString().substring(2);
+    DateTime ntpNow;
+    try {
+      ntpNow = await NTP.now();
+    } catch (e) {
+      debugPrint("⚠️ NTP failed: $e. Falling back to device time.");
+      ntpNow = DateTime.now();
+    }
+
+    final year = ntpNow.year.toString().substring(2);
     final paddedSerial = (await SharedPreferencesHelper.getNoticeSerialNumber())
         .toString()
         .padLeft(5, '0');

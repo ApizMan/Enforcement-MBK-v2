@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
+import 'package:ntp/ntp.dart';
 
 class SummaryFaultScreen extends StatefulWidget {
   final VehicleValidationFormBloc? vehicleValidationFormBloc;
@@ -28,7 +29,9 @@ class SummaryFaultScreen extends StatefulWidget {
 }
 
 class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
-  late String _currentTime;
+  String _currentTime = '-';
+
+  DateTime? _ntpTime;
   late Timer _timer;
   late Timer _scrollTimer;
   final ScrollController _scrollController = ScrollController();
@@ -37,19 +40,7 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
   @override
   void initState() {
     super.initState();
-    _currentTime = _formatDateTime(DateTime.now());
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
-      final now = DateTime.now();
-      setState(() {
-        _currentTime = _formatDateTime(now);
-      });
-
-      final formattedForStorage =
-          DateFormat('yyyyMMddhhmma').format(now).toUpperCase();
-      widget.compoundParkingFormBloc?.dateTime.updateValue(formattedForStorage);
-    });
-
+    _initNtpTime(); // ⬅️ Start with NTP time fetch
     _startAutoScroll();
     _getBtnPushStatus();
   }
@@ -73,6 +64,36 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
     _scrollTimer.cancel();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _initNtpTime() async {
+    try {
+      _ntpTime = await NTP.now();
+      _updateCurrentTime();
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        _updateCurrentTime();
+      });
+    } catch (e) {
+      print("❌ Failed to get NTP time: $e");
+      _ntpTime = DateTime.now(); // fallback
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        _updateCurrentTime();
+      });
+    }
+  }
+
+  void _updateCurrentTime() {
+    if (_ntpTime == null) return;
+
+    final now = _ntpTime!
+        .add(Duration(seconds: DateTime.now().difference(_ntpTime!).inSeconds));
+    setState(() {
+      _currentTime = _formatDateTime(now);
+    });
+
+    final formattedForStorage =
+        DateFormat('yyyyMMddhhmma').format(now).toUpperCase();
+    widget.compoundParkingFormBloc?.dateTime.updateValue(formattedForStorage);
   }
 
   String _formatDateTime(DateTime dateTime) {

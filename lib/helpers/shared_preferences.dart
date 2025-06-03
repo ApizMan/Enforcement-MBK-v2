@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:eo_apk_mbk_v2/helpers/constant.dart';
 import 'package:eo_apk_mbk_v2/models/models.dart';
 import 'package:intl/intl.dart';
+import 'package:ntp/ntp.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPreferencesHelper {
@@ -258,9 +259,18 @@ class SharedPreferencesHelper {
 
     if (jsonList.isEmpty) return;
 
-    final String todayDate = DateFormat('yyyyMMdd').format(DateTime.now());
+    // 🕒 Get accurate NTP time
+    DateTime ntpTime;
+    try {
+      ntpTime = await NTP.now();
+    } catch (e) {
+      print('⚠️ Failed to fetch NTP time. Fallback to device time.');
+      ntpTime = DateTime.now();
+    }
 
-    // Filter only models with today's date
+    final String todayDate = DateFormat('yyyyMMdd').format(ntpTime);
+
+    // 🧹 Filter only models with today's date
     List<String> filteredList = jsonList.where((jsonString) {
       final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
       final String? offenceDate = jsonMap['OffenceDateString'];
@@ -273,7 +283,7 @@ class SharedPreferencesHelper {
       return false; // Remove if date is invalid or missing
     }).toList();
 
-    // Save the filtered list back
+    // 💾 Save the filtered list back
     await prefs.setStringList(officerCompoundModelPendingKey, filteredList);
   }
 
@@ -313,9 +323,18 @@ class SharedPreferencesHelper {
 
     if (jsonList.isEmpty) return;
 
-    final String todayDate = DateFormat('yyyyMMdd').format(DateTime.now());
+    // ✅ Get accurate NTP time
+    DateTime ntpTime;
+    try {
+      ntpTime = await NTP.now();
+    } catch (e) {
+      print('⚠️ NTP fetch failed. Using device time as fallback.');
+      ntpTime = DateTime.now();
+    }
 
-    // Filter only models with today's date
+    final String todayDate = DateFormat('yyyyMMdd').format(ntpTime);
+
+    // ✅ Filter only models with today's date
     List<String> filteredList = jsonList.where((jsonString) {
       final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
       final String? offenceDate = jsonMap['OffenceDateString'];
@@ -325,10 +344,10 @@ class SharedPreferencesHelper {
         return offenceDateOnly == todayDate;
       }
 
-      return false; // Remove if date is invalid or missing
+      return false;
     }).toList();
 
-    // Save the filtered list back
+    // ✅ Save the filtered list back
     await prefs.setStringList(officerCompoundModelKey, filteredList);
   }
 
@@ -371,8 +390,16 @@ class SharedPreferencesHelper {
         Directory('/storage/emulated/0/Download/Pictures/CompoundImages/');
     if (!await dir.exists()) return;
 
-    final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    // 🕒 Use accurate NTP time
+    DateTime ntpTime;
+    try {
+      ntpTime = await NTP.now();
+    } catch (e) {
+      print('⚠️ NTP failed, using device time.');
+      ntpTime = DateTime.now();
+    }
 
+    final todayStr = DateFormat('yyyy-MM-dd').format(ntpTime);
     final files = dir.listSync();
 
     for (var file in files) {
@@ -383,9 +410,9 @@ class SharedPreferencesHelper {
         if (modifiedStr != todayStr) {
           try {
             await file.delete();
-            print('Deleted: ${file.path}');
+            print('🗑️ Deleted: ${file.path}');
           } catch (e) {
-            print('Failed to delete ${file.path}: $e');
+            print('❌ Failed to delete ${file.path}: $e');
           }
         }
       }

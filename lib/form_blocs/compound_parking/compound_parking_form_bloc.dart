@@ -8,6 +8,7 @@ import 'package:eo_apk_mbk_v2/helpers/validators.dart';
 import 'package:eo_apk_mbk_v2/models/models.dart';
 import 'package:eo_apk_mbk_v2/resources/resources.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
+import 'package:ntp/ntp.dart';
 
 class CompoundParkingFormBloc extends FormBloc<String, String> {
   final List<VehicleBrandModel> vehicleMakesModel;
@@ -343,7 +344,13 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       final witnessName =
           witness.fullName; // assuming UserModel has a `.name` field
 
-      final now = DateTime.now();
+      DateTime now;
+      try {
+        now = await NTP.now();
+      } catch (e) {
+        now = DateTime.now(); // Fallback
+        print('⚠️ Failed to fetch NTP time, using device time.');
+      }
       final formatted = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
 
       if (mac['isMACSave'] == false) {

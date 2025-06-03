@@ -22,6 +22,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 import 'package:eo_apk_mbk_v2/helpers/validation_form.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:ntp/ntp.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -48,6 +49,8 @@ class _HomeScreenState extends State<HomeScreen> {
   List<OffenceAreaModel> offenceAreaModel = [];
   List<OffenceLocationModel> offenceLocationModel = [];
 
+  DateTime? _ntpNow;
+
   // FormBloc
   VehicleValidationFormBloc? vehicleValidationFormBloc;
   CompoundParkingFormBloc? compoundParkingFormBloc;
@@ -57,11 +60,29 @@ class _HomeScreenState extends State<HomeScreen> {
     handHeldId = "";
     super.initState();
 
+    _initNtpTime();
+
     Future.delayed(Duration.zero, () {
       controller.setScreen(RouteManager.compoundParkingBody);
       _resetPushBtnStatus();
       _resetAfterCompound();
     });
+  }
+
+  Future<void> _initNtpTime() async {
+    try {
+      _ntpNow = await NTP.now();
+      debugPrint('✅ NTP time fetched: $_ntpNow');
+    } catch (e) {
+      _ntpNow = DateTime.now();
+      debugPrint('⚠️ Failed to fetch NTP, fallback to device time: $_ntpNow');
+    }
+  }
+
+  DateTime getSyncedTime() {
+    if (_ntpNow == null) return DateTime.now();
+    final diff = DateTime.now().difference(_ntpNow!);
+    return _ntpNow!.add(diff);
   }
 
   Future<void> _resetPushBtnStatus() async {
@@ -124,7 +145,6 @@ class _HomeScreenState extends State<HomeScreen> {
       return false;
     }
 
-    // 📸 Retry loop until image is captured
     XFile? pickedFile;
     while (pickedFile == null) {
       pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
@@ -149,13 +169,12 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    // 📦 Compress the image
     final Uint8List? compressedBytes =
         await FlutterImageCompress.compressWithFile(
       pickedFile.path,
-      quality: 60, // reduced quality
-      minWidth: 720, // resize width
-      minHeight: 720, // resize height
+      quality: 60,
+      minWidth: 720,
+      minHeight: 720,
     );
 
     if (compressedBytes == null) return false;
@@ -167,7 +186,6 @@ class _HomeScreenState extends State<HomeScreen> {
     debugPrint('📦 Compressed size: ${compressedSizeMB.toStringAsFixed(2)} MB');
     debugPrint('🧬 Base64 size: ${base64SizeMB.toStringAsFixed(2)} MB');
 
-    // 🚫 Skip if image too large
     if (compressedSizeMB > 37.5 || base64SizeMB > 50) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Image is too large. Please try again.')),
@@ -175,16 +193,17 @@ class _HomeScreenState extends State<HomeScreen> {
       return false;
     }
 
-    // 🏷️ Prepare image name
+    // 📂 Generate file name and compound name
     final handheldCode = await SharedPreferencesHelper.getHandheldId();
-    final year = DateTime.now().year.toString().substring(2);
+    final year = getSyncedTime().year.toString().substring(2);
     int serial = await SharedPreferencesHelper.getNoticeSerialNumber();
     final previousSerial = serial - 1;
     final paddedSerial = previousSerial.toString().padLeft(5, '0');
     final imageIndex = 'AfterCompound';
     final fileName = '$handheldCode$year${paddedSerial}Pic$imageIndex.jpg';
+    final compoundName = '$handheldCode$year$paddedSerial';
 
-    // ☁️ Upload image
+    // ☁️ Upload to first server
     final responseUploadImage = await UploadResources.uploadImage(
       prefix: '/compound/upload-image',
       body: {
@@ -193,8 +212,6 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
 
-    final compoundName = '$handheldCode$year$paddedSerial';
-
     if (responseUploadImage['StatusCode'] == "Success") {
       final response = await CompoundResources.updateImageAfter(
         prefix: '/compound/picture-after/$compoundName',
@@ -202,6 +219,28 @@ class _HomeScreenState extends State<HomeScreen> {
           'pictureName': fileName,
         },
       );
+
+      // ☁️ Upload to PahangGo
+      final tempPath =
+          '${File(pickedFile.path).parent.path}/compressed_$fileName';
+      final compressedFile = await File(tempPath).writeAsBytes(compressedBytes);
+
+      try {
+        final pahangGoResponse = await UploadResources.uploadImagePahangGo(
+          prefix: 'compound/pictures',
+          compoundNumber: compoundName,
+          pictures: [compressedFile],
+        );
+
+        if (pahangGoResponse['status'] == true) {
+          debugPrint('✅ Uploaded to PahangGo');
+        } else {
+          debugPrint(
+              '❌ Failed to upload to PahangGo: ${pahangGoResponse['message']}');
+        }
+      } catch (e) {
+        debugPrint('❌ Exception during PahangGo upload: $e');
+      }
 
       return response['success'] == true;
     } else {
@@ -697,11 +736,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<bool> _uploadCapturedImages() async {
     final paths = await SharedPreferencesHelper.getCapturedImagePaths();
 
-    // Filter non-null and non-empty paths
     final validPaths =
         paths.whereType<String>().where((path) => path.isNotEmpty).toList();
 
     bool hasSuccess = false;
+    List<File> compressedFilesForPahangGo = [];
 
     for (final path in validPaths) {
       try {
@@ -711,7 +750,6 @@ class _HomeScreenState extends State<HomeScreen> {
           continue;
         }
 
-        // ✅ Compress image
         final Uint8List? compressedBytes =
             await FlutterImageCompress.compressWithFile(
           file.path,
@@ -733,13 +771,14 @@ class _HomeScreenState extends State<HomeScreen> {
             '📦 Compressed size: ${compressedSizeMB.toStringAsFixed(2)} MB');
         debugPrint('🧬 Base64 size: ${base64SizeMB.toStringAsFixed(2)} MB');
 
-        // 🚫 Skip if image too large
         if (compressedSizeMB > 37.5 || base64SizeMB > 50) {
           debugPrint('⚠️ Skipping $path — exceeds upload size limit');
           continue;
         }
 
         final fileName = path.split('/').last;
+
+        // Upload to First Server (Base64)
         final response = await UploadResources.uploadImage(
           prefix: '/compound/upload-image',
           body: {
@@ -751,6 +790,11 @@ class _HomeScreenState extends State<HomeScreen> {
         if (response['StatusCode'] == "Success") {
           debugPrint('✅ Uploaded $fileName successfully');
           hasSuccess = true;
+
+          // Save temp compressed file for PahangGo upload
+          final tempPath = '${file.parent.path}/compressed_$fileName';
+          final tempFile = await File(tempPath).writeAsBytes(compressedBytes);
+          compressedFilesForPahangGo.add(tempFile);
         } else {
           debugPrint('❌ Failed to upload $fileName');
           debugPrint('🛑 Server response: ${response['StatusDescription']}');
@@ -758,6 +802,35 @@ class _HomeScreenState extends State<HomeScreen> {
       } catch (e) {
         debugPrint('❌ Exception while processing $path: $e');
       }
+    }
+
+    // ✅ Upload all successfully compressed files to PahangGo
+    if (compressedFilesForPahangGo.isNotEmpty) {
+      try {
+        final handheldCode = await SharedPreferencesHelper.getHandheldId();
+        final year = getSyncedTime().year.toString().substring(2);
+        int serial = await SharedPreferencesHelper.getNoticeSerialNumber();
+        final previousSerial = serial - 1;
+        final paddedSerial = previousSerial.toString().padLeft(5, '0');
+        final compoundNumber = '$handheldCode$year$paddedSerial';
+
+        final pahangGoResponse = await UploadResources.uploadImagePahangGo(
+          prefix: 'compound/pictures',
+          compoundNumber: compoundNumber,
+          pictures: compressedFilesForPahangGo,
+        );
+
+        if (pahangGoResponse['status'] == true) {
+          debugPrint('✅ All files uploaded to PahangGo');
+        } else {
+          debugPrint(
+              '❌ Failed PahangGo upload: ${pahangGoResponse['message']}');
+        }
+      } catch (e) {
+        debugPrint('❌ Exception during PahangGo upload: $e');
+      }
+    } else {
+      debugPrint('⚠️ No valid files to send to PahangGo');
     }
 
     return hasSuccess;
