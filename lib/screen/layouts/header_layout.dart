@@ -6,7 +6,7 @@ import 'package:eo_apk_mbk_v2/helpers/constant.dart';
 import 'package:eo_apk_mbk_v2/helpers/theme.dart';
 import 'package:eo_apk_mbk_v2/routes/route_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:eo_apk_mbk_v2/src/localization/app_localizations.dart';
 import 'package:get/get.dart';
 
 class HeaderLayout extends StatelessWidget implements PreferredSizeWidget {

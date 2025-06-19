@@ -265,7 +265,7 @@ class SharedPreferencesHelper {
       ntpTime = await NTP.now();
     } catch (e) {
       print('⚠️ Failed to fetch NTP time. Fallback to device time.');
-      ntpTime = DateTime.now();
+      ntpTime = DateTime(2025, 6, 19, 14, 30, 0);
     }
 
     final String todayDate = DateFormat('yyyyMMdd').format(ntpTime);
@@ -329,7 +329,7 @@ class SharedPreferencesHelper {
       ntpTime = await NTP.now();
     } catch (e) {
       print('⚠️ NTP fetch failed. Using device time as fallback.');
-      ntpTime = DateTime.now();
+      ntpTime = DateTime(2025, 6, 19, 14, 30, 0);
     }
 
     final String todayDate = DateFormat('yyyyMMdd').format(ntpTime);
@@ -396,7 +396,7 @@ class SharedPreferencesHelper {
       ntpTime = await NTP.now();
     } catch (e) {
       print('⚠️ NTP failed, using device time.');
-      ntpTime = DateTime.now();
+      ntpTime = DateTime(2025, 6, 19, 14, 30, 0);
     }
 
     final todayStr = DateFormat('yyyy-MM-dd').format(ntpTime);
@@ -448,5 +448,23 @@ class SharedPreferencesHelper {
       return jsonDecode(jsonString);
     }
     return null;
+  }
+
+  static Future<String> getOrCreateHandheldDisplayId(String display) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Check if we already have a saved unique ID
+    String? existingId = prefs.getString(handheldDisplayIdKey);
+    if (existingId != null && existingId.isNotEmpty) {
+      return existingId;
+    }
+
+    // If not, generate new increment (e.g., based on timestamp or a random number)
+    final int uniqueNumber = DateTime.now().millisecondsSinceEpoch % 10000;
+    final String newId = '${display}_$uniqueNumber';
+
+    // Save and return
+    await prefs.setString(handheldDisplayIdKey, newId);
+    return newId;
   }
 }

@@ -4,7 +4,7 @@ import 'package:eo_apk_mbk_v2/models/models.dart';
 import 'package:eo_apk_mbk_v2/screen/screen.dart';
 import 'package:eo_apk_mbk_v2/widgets/loading_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:eo_apk_mbk_v2/src/localization/app_localizations.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});

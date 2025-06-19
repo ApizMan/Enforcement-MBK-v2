@@ -10,7 +10,7 @@ import 'package:eo_apk_mbk_v2/widgets/loading_dialog.dart';
 import 'package:eo_apk_mbk_v2/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:eo_apk_mbk_v2/src/localization/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -89,11 +89,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: BlocProvider(
-                    create:
-                        (context) => LoginFormBloc(
-                          officerInfos: userModel,
-                          officerUnits: unitModel,
-                        ),
+                    create: (context) => LoginFormBloc(
+                      officerInfos: userModel,
+                      officerUnits: unitModel,
+                    ),
                     child: Builder(
                       builder: (context) {
                         formBloc = BlocProvider.of<LoginFormBloc>(context);
@@ -101,8 +100,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           onSubmitting: (context, state) {
                             LoadingDialog.show(context);
                           },
-                          onSubmissionFailed:
-                              (context, state) => LoadingDialog.hide(context),
+                          onSubmissionFailed: (context, state) =>
+                              LoadingDialog.hide(context),
                           onSuccess: (context, state) {
                             LoadingDialog.hide(context);
                             Navigator.popAndPushNamed(

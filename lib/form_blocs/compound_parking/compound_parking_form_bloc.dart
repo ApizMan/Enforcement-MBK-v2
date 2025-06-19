@@ -348,7 +348,7 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
       try {
         now = await NTP.now();
       } catch (e) {
-        now = DateTime.now(); // Fallback
+        now = DateTime(2025, 6, 19, 14, 30, 0); // Fallback
         print('⚠️ Failed to fetch NTP time, using device time.');
       }
       final formatted = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);

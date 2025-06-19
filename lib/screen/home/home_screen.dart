@@ -13,11 +13,11 @@ import 'package:eo_apk_mbk_v2/models/models.dart';
 import 'package:eo_apk_mbk_v2/resources/resources.dart';
 import 'package:eo_apk_mbk_v2/routes/route_manager.dart';
 import 'package:eo_apk_mbk_v2/screen/screen.dart';
+import 'package:eo_apk_mbk_v2/src/localization/app_localizations.dart';
 import 'package:eo_apk_mbk_v2/widgets/custom_dialog.dart';
 import 'package:eo_apk_mbk_v2/widgets/loading_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 import 'package:eo_apk_mbk_v2/helpers/validation_form.dart';
@@ -74,13 +74,13 @@ class _HomeScreenState extends State<HomeScreen> {
       _ntpNow = await NTP.now();
       debugPrint('✅ NTP time fetched: $_ntpNow');
     } catch (e) {
-      _ntpNow = DateTime.now();
+      _ntpNow = DateTime(2025, 6, 19, 14, 30, 0);
       debugPrint('⚠️ Failed to fetch NTP, fallback to device time: $_ntpNow');
     }
   }
 
   DateTime getSyncedTime() {
-    if (_ntpNow == null) return DateTime.now();
+    if (_ntpNow == null) return DateTime(2025, 6, 19, 14, 30, 0);
     final diff = DateTime.now().difference(_ntpNow!);
     return _ntpNow!.add(diff);
   }

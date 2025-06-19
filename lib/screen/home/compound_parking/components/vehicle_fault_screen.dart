@@ -10,7 +10,7 @@ import 'package:eo_apk_mbk_v2/routes/route_manager.dart';
 import 'package:eo_apk_mbk_v2/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:eo_apk_mbk_v2/src/localization/app_localizations.dart';
 
 class VehicleFaultScreen extends StatefulWidget {
   final VehicleValidationFormBloc? vehicleValidationFormBloc;

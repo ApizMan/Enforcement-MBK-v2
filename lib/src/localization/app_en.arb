@@ -73,5 +73,6 @@
   "successPushServer": "Pending Compound has been successfully uploaded to the server.",
   "warningImage1": "Compound that not have Image After",
   "warningImage2": "Are You Sure Wanted To Continue this Action?",
-  "compoundSuccessDesc": "Compound Success Created"
+  "compoundSuccessDesc": "Compound Success Created",
+  "printOfflineDesc": "Are sure wanted to continue this action?"
 }

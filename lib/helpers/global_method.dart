@@ -7,18 +7,17 @@ Future<OffenceDataModel> fetchOffenceAreasList({
   void Function(String, double)? onProgress,
 }) async {
   final deviceInfo = DeviceInfoPlugin();
-
   onProgress?.call("Detecting device info...", 0.15);
-
   AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
 
-  // ✅ Get bootloader
-  String display = androidInfo.display;
+  final String display = androidInfo.display;
+  final String uniqueDisplayId =
+      await SharedPreferencesHelper.getOrCreateHandheldDisplayId(display);
 
   onProgress?.call("Registering handheld...", 0.25);
 
   final response = await OffenceResources.getDevice(
-    prefix: '/compound/register/$display',
+    prefix: '/compound/register/$uniqueDisplayId',
   );
 
   if (response != null && response['handheldCode'] != null) {

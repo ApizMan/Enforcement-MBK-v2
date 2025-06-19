@@ -8,6 +8,7 @@ import 'package:eo_apk_mbk_v2/routes/route_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_indicator/loading_indicator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -33,7 +34,19 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _resetCompoundAndImage() async {
-    // Clear Compound if not today
+    final prefs = await SharedPreferences.getInstance();
+
+    // ✅ Get the list from SharedPreferences
+    final List<String>? pendingList =
+        prefs.getStringList(officerCompoundModelPendingKey);
+
+    // ✅ Only clear if the list is not null (has something)
+    if (pendingList != null) {
+      await SharedPreferencesHelper
+          .clearOldOfficerCompoundModelsPendingIfNotToday();
+    }
+
+    // ✅ Always clear the confirmed compound models
     await SharedPreferencesHelper.clearOldOfficerCompoundModelsIfNotToday();
   }
 

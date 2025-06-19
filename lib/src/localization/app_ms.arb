@@ -73,5 +73,6 @@
   "successPushServer": "Kompoun Sementara berjaya dimuatnaik ke dalam Server.",
   "warningImage1": "Kompoun yang tiada gambar selepas",
   "warningImage2": "Adakah Anda Pasti Mahu Meneruskan Tindakan Ini?",
-  "compoundSuccessDesc": "Kompoun Berjaya Dikeluarkan"
+  "compoundSuccessDesc": "Kompoun Berjaya Dikeluarkan",
+  "printOfflineDesc": "Adakah anda yakin untuk teruskan tindakan ini?"
 }

@@ -18,7 +18,7 @@ import 'package:eo_apk_mbk_v2/models/models.dart';
 import 'package:eo_apk_mbk_v2/resources/resources.dart';
 import 'package:eo_apk_mbk_v2/widgets/custom_dialog.dart';
 import 'package:eo_apk_mbk_v2/widgets/loading_dialog.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:eo_apk_mbk_v2/src/localization/app_localizations.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_scale_tap/flutter_scale_tap.dart';
 import 'package:image_picker/image_picker.dart';
@@ -768,7 +768,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
       final witnessName =
           witness.fullName; // assuming UserModel has a `.name` field
 
-      final now = DateTime.now();
+      final now = DateTime(2025, 6, 19, 14, 30, 0);
       final formatted = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
 
       final idByNoticeNo =

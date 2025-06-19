@@ -3,14 +3,16 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:eo_apk_mbk_v2/form_blocs/form_bloc.dart';
 import 'package:eo_apk_mbk_v2/helpers/constant.dart';
 import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
 import 'package:eo_apk_mbk_v2/helpers/theme.dart';
+import 'package:eo_apk_mbk_v2/widgets/custom_dialog.dart';
 import 'package:eo_apk_mbk_v2/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:eo_apk_mbk_v2/src/localization/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:ntp/ntp.dart';
 
@@ -75,7 +77,7 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
       });
     } catch (e) {
       print("❌ Failed to get NTP time: $e");
-      _ntpTime = DateTime.now(); // fallback
+      _ntpTime = DateTime(2025, 6, 19, 14, 30, 0); // fallback
       _timer = Timer.periodic(const Duration(seconds: 1), (_) {
         _updateCurrentTime();
       });
@@ -120,11 +122,45 @@ class _SummaryFaultScreenState extends State<SummaryFaultScreen> {
             buttonWidth: 1,
             borderRadius: 10.0,
             color: accentCanvasColor,
-            onPressed: () {
-              setState(() {
-                // Submit the form
-                widget.compoundParkingFormBloc?.submit();
-              });
+            onPressed: () async {
+              final connectivityResult =
+                  await Connectivity().checkConnectivity();
+              bool hasInternet = connectivityResult != ConnectivityResult.none;
+
+              if (hasInternet) {
+                try {
+                  // Try to connect to a reliable site
+                  final result = await InternetAddress.lookup('google.com');
+                  if (result.isEmpty || result[0].rawAddress.isEmpty) {
+                    hasInternet = false;
+                  }
+                } on SocketException catch (_) {
+                  hasInternet = false;
+                }
+              }
+
+              if (!hasInternet) {
+                CustomDialog.show(
+                  context,
+                  dialogType: DialogType.danger,
+                  icon: Icons.warning,
+                  description: AppLocalizations.of(context)!.printOfflineDesc,
+                  btnOkText: AppLocalizations.of(context)!.ok,
+                  btnOkOnPress: () {
+                    // Proceed with form submission
+                    setState(() {
+                      widget.compoundParkingFormBloc?.submit();
+                    });
+                  },
+                  btnCancelText: AppLocalizations.of(context)!.cancel,
+                  btnCancelOnPress: () => Navigator.of(context).pop(),
+                );
+              } else {
+                // Proceed with form submission
+                setState(() {
+                  widget.compoundParkingFormBloc?.submit();
+                });
+              }
             },
             label: Text(
               AppLocalizations.of(context)!.print,

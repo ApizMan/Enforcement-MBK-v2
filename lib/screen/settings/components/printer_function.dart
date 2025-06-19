@@ -5,10 +5,10 @@ import 'package:eo_apk_mbk_v2/helpers/shared_preferences.dart';
 import 'package:eo_apk_mbk_v2/helpers/theme.dart';
 import 'package:eo_apk_mbk_v2/routes/route_manager.dart';
 import 'package:eo_apk_mbk_v2/screen/screen.dart';
+import 'package:eo_apk_mbk_v2/src/localization/app_localizations.dart';
 import 'package:eo_apk_mbk_v2/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PrinterFunction extends StatefulWidget {
   final Map<String, dynamic> printerMAC;

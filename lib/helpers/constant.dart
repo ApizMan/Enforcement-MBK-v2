@@ -58,6 +58,7 @@ const String officerCompoundModelKey = 'officerCompoundModelKey';
 const String verifyDescKey = 'verifyDescKey';
 const String imageCountKey = 'imageCountKey';
 const String compoundIdKey = 'compoundIdKey';
+const String handheldDisplayIdKey = 'handheldDisplayIdKey';
 
 final divider = Divider(color: kWhite.withOpacity(0.3), height: 1);
 

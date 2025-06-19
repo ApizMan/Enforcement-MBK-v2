@@ -5,7 +5,7 @@ import 'package:eo_apk_mbk_v2/routes/route_manager.dart';
 import 'package:eo_apk_mbk_v2/widgets/custom_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:sidebarx/sidebarx.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:eo_apk_mbk_v2/src/localization/app_localizations.dart';
 
 class SidebarLayout extends StatefulWidget {
   final List<UserModel> userModel;
