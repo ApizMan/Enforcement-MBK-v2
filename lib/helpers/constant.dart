@@ -15,7 +15,8 @@ const String myEnfocementEnYasinUrl =
 
 const String backendUrl = 'http://220.158.208.216:3030';
 
-const String pahangGoUrl = 'https://staging.forcify.xyz/api/v1/external/';
+const String pahangGoUrl = 'https://v2.forcify.xyz/api/v1/external/';
+// const String pahangGoUrl = 'https://staging.forcify.xyz/api/v1/external/';
 
 // Colors
 const Color kBlack = Colors.black;

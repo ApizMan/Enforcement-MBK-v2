@@ -21,6 +21,7 @@ class UploadResources {
     required List<File> pictures,
   }) async {
     String token = '5a5dd0ce-f986-4073-96a9-c3bbfe226fd9';
+    // String token = '5a5dd0ce-f986-4073-96a9-c3bbfe226fd9';
 
     var uri = Uri.parse('$pahangGoUrl$prefix');
 
@@ -63,6 +64,7 @@ class UploadResources {
   static Future uploadCompoundToPahangGo(
       {required String prefix, required Object body}) async {
     String token = '5a5dd0ce-f986-4073-96a9-c3bbfe226fd9';
+    // String token = '5a5dd0ce-f986-4073-96a9-c3bbfe226fd9';
     var response = await http.post(
       Uri.parse('$pahangGoUrl$prefix'),
       headers: {
