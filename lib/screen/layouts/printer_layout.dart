@@ -57,6 +57,7 @@ ${doc.getLabelLengthCommand()}${doc.getPrintingData()}^XZ
     required List<OffenceSectionModel> offenceSectionModel,
     required List<OffenceAreaModel> offenceAreaModel,
     required List<OffenceLocationModel> offenceLocationModel,
+    required String qr,
   }) {
     final doc = PrintingDocument('500').createNoticeDuplicateCopy(
       model: model,
@@ -72,6 +73,7 @@ ${doc.getLabelLengthCommand()}${doc.getPrintingData()}^XZ
       vehicleMakesModel: vehicleMakesModel,
       vehicleModelsModel: vehicleModelsModel,
       vehicleTypeModel: vehicleTypeModel,
+      qr: qr,
     );
 
     String zpl = '''
@@ -99,6 +101,7 @@ ${doc.getLabelLengthCommand()}${doc.getPrintingData()}^XZ
     required List<OffenceSectionModel> offenceSectionModel,
     required List<OffenceAreaModel> offenceAreaModel,
     required List<OffenceLocationModel> offenceLocationModel,
+    required String qr,
   }) {
     final doc = PrintingDocument('500').createNotice(
       model: model,
@@ -114,6 +117,7 @@ ${doc.getLabelLengthCommand()}${doc.getPrintingData()}^XZ
       vehicleMakesModel: vehicleMakesModel,
       vehicleModelsModel: vehicleModelsModel,
       vehicleTypeModel: vehicleTypeModel,
+      qr: qr,
     );
 
     String zpl = '''

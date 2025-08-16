@@ -34,10 +34,39 @@ class PrintingDocument {
     printingData += '^B3N,N,$height,Y,N^FD$data^FS \r\n';
   }
 
+  /// Hex-escape for ZPL (^FH). Use '_hh' where hh is ASCII hex.
+  /// We escape only the characters that are known to cause issues or could be misread.
+  String _zplHexEscape(String s) {
+    final map = {
+      '_': '_5F', // literal underscore
+      '^': '_5E',
+      '~': '_7E',
+      '\\': '_5C',
+      // URL-sensitive chars (ensure they remain exact):
+      '+': '_2B',
+      '=': '_3D',
+      ',': '_2C', // we don't expect commas in your data, but safe anyway
+    };
+
+    final sb = StringBuffer();
+    for (final ch in s.split('')) {
+      final esc = map[ch];
+      if (esc != null) {
+        sb.write(esc);
+      } else {
+        sb.write(ch);
+      }
+    }
+    return sb.toString();
+  }
+
   void drawQRCode(int x, int y, int size, String data) {
     incrementPositionY += y;
+    final escaped = _zplHexEscape(data);
     printingData += '^FO$x,$incrementPositionY';
-    printingData += '^BQN,2,$size^FD$data^FS \r\n';
+    // model=2, size=<your magnification>
+    // ^FH enables hex decoding; MA, = automatic mode with no changes to your payload
+    printingData += '^BQN,2,$size^FH^FDMA,$escaped^FS \r\n';
   }
 
   void drawText(int x, int y, int fontSize, String data) {
@@ -126,8 +155,9 @@ class PrintingDocument {
     required List<OffenceSectionModel> offenceSectionModel,
     required List<OffenceAreaModel> offenceAreaModel,
     required List<OffenceLocationModel> offenceLocationModel,
+    required String qr,
   }) {
-    PrintingDocument doc = PrintingDocument('2500');
+    PrintingDocument doc = PrintingDocument('2800');
 
     if (model.isClamping == true) {
       doc = PrintingDocument('2200');
@@ -309,6 +339,17 @@ class PrintingDocument {
     if (model.isClamping == true) {
       doc.drawTextFlow(0, 150, 20, 800, 'C', 'KENDERAAN TELAH DIKUNCI TAYAR');
     }
+
+    doc.drawText(80, 100, 18,
+        'SILA BUAT IMBASAN DI ATAS KERTAS INI UNTUK MEMBUATKAN PEMBAYARAN KOMPAUN');
+
+    // New QR code right below
+    doc.drawQRCode(
+      250, // x start (center position for ~size 7)
+      80, // y offset after the text
+      7, // QR size (adjust if needed)
+      qr, // Data you pass into createNotice
+    );
 
     return doc;
   }
@@ -327,8 +368,9 @@ class PrintingDocument {
     required List<OffenceSectionModel> offenceSectionModel,
     required List<OffenceAreaModel> offenceAreaModel,
     required List<OffenceLocationModel> offenceLocationModel,
+    required String qr,
   }) {
-    PrintingDocument doc = PrintingDocument('2500');
+    PrintingDocument doc = PrintingDocument('2800');
 
     if (model.isClamping == true) {
       doc = PrintingDocument('2200');
@@ -510,6 +552,17 @@ class PrintingDocument {
     if (model.isClamping == true) {
       doc.drawTextFlow(0, 150, 20, 800, 'C', 'KENDERAAN TELAH DIKUNCI TAYAR');
     }
+
+    doc.drawText(80, 100, 18,
+        'SILA BUAT IMBASAN DI ATAS KERTAS INI UNTUK MEMBUATKAN PEMBAYARAN KOMPAUN');
+
+    // New QR code right below
+    doc.drawQRCode(
+      250, // x start (center position for ~size 7)
+      80, // y offset after the text
+      7, // QR size (adjust if needed)
+      qr, // Data you pass into createNotice
+    );
 
     return doc;
   }

@@ -366,7 +366,14 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
             (s) => s.id == section.value!.id,
             orElse: () => OffenceSectionModel());
 
-        compoundModel.compoundAmount = selectedSection.amount3 ?? 0;
+        int resolvedAmount = 0;
+        resolvedAmount = selectedSection.amount1 ??
+            selectedSection.amount2 ??
+            selectedSection.amount3 ??
+            selectedSection.amount4 ??
+            0;
+
+        compoundModel.compoundAmount = resolvedAmount;
 
         if (placement.value != null) {
           final isOtherPlacement = placement.value!.id == '__other_placement__';
@@ -469,32 +476,189 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
         await SharedPreferencesHelper.setNoticeSerialNumber(incrementSerial);
         await SharedPreferencesHelper.clearVerifyVehicleDesc();
 
-        // ✅ Proceed to print
-        final printSuccess = await CompoundPrintService.connectAndPrint(
-          model: compoundModel,
-          rawMac: mac['printerMAC'],
-          handHeldId: handheldId,
-          userModel: userModel,
-          unitModel: unitModel,
-          offenceActModel: offenceActModel,
-          offenceAreaModel: offenceAreaModel,
-          offenceLocationModel: offenceLocationModel,
-          offenceSectionModel: offenceSectionModel,
-          vehicleColorModel: vehicleColorModel,
-          vehicleMakesModel: vehicleMakesModel,
-          vehicleModelsModel: vehicleModelsModel,
-          vehicleTypeModel: vehicleTypeModel,
-        );
+        final respondTokenQR =
+            await QrPaymentResources.getToken(prefix: '/payment/public/token');
 
-        if (!printSuccess) {
-          emitFailure(
-            failureResponse: jsonEncode({
-              'type': 'print',
-              'message':
-                  'Printing failed. Please try again. You can check to Duplicate Copy the latest compound.',
-            }),
+        if (respondTokenQR['accessToken'] != null) {
+          await SharedPreferencesHelper.setPegeypayToken(
+            token: respondTokenQR['accessToken'],
           );
-          return;
+
+          final respondGetQR = await getQR(
+            token: respondTokenQR['accessToken'],
+            compoundModel: compoundModel,
+          );
+
+          if (respondGetQR['status'] == 'success') {
+            await SharedPreferencesHelper.setQRLink(
+              qrlink: respondGetQR['content']['iframe_url'],
+            );
+
+            // ✅ Proceed to print
+            final printSuccess = await CompoundPrintService.connectAndPrint(
+              model: compoundModel,
+              rawMac: mac['printerMAC'],
+              handHeldId: handheldId,
+              userModel: userModel,
+              unitModel: unitModel,
+              offenceActModel: offenceActModel,
+              offenceAreaModel: offenceAreaModel,
+              offenceLocationModel: offenceLocationModel,
+              offenceSectionModel: offenceSectionModel,
+              vehicleColorModel: vehicleColorModel,
+              vehicleMakesModel: vehicleMakesModel,
+              vehicleModelsModel: vehicleModelsModel,
+              vehicleTypeModel: vehicleTypeModel,
+              qr: respondGetQR['content']['iframe_url'],
+            );
+
+            if (!printSuccess) {
+              emitFailure(
+                failureResponse: jsonEncode({
+                  'type': 'print',
+                  'message':
+                      'Printing failed. Please try again. You can check to Duplicate Copy the latest compound.',
+                }),
+              );
+              return;
+            }
+          } else {
+            final respondRefreshTokenQR = await QrPaymentResources.refreshToken(
+                prefix: '/payment/public/refresh-token');
+
+            if (respondRefreshTokenQR['access_token'] == null) {
+              await SharedPreferencesHelper.setPegeypayToken(
+                token: respondRefreshTokenQR['access_token'],
+              );
+
+              final respondGetQR = await getQR(
+                token: respondRefreshTokenQR['access_token'],
+                compoundModel: compoundModel,
+              );
+
+              if (respondGetQR['status'] == 'success') {
+                // ✅ Proceed to print
+                await SharedPreferencesHelper.setQRLink(
+                  qrlink: respondGetQR['content']['iframe_url'],
+                );
+
+                final printSuccess = await CompoundPrintService.connectAndPrint(
+                  model: compoundModel,
+                  rawMac: mac['printerMAC'],
+                  handHeldId: handheldId,
+                  userModel: userModel,
+                  unitModel: unitModel,
+                  offenceActModel: offenceActModel,
+                  offenceAreaModel: offenceAreaModel,
+                  offenceLocationModel: offenceLocationModel,
+                  offenceSectionModel: offenceSectionModel,
+                  vehicleColorModel: vehicleColorModel,
+                  vehicleMakesModel: vehicleMakesModel,
+                  vehicleModelsModel: vehicleModelsModel,
+                  vehicleTypeModel: vehicleTypeModel,
+                  qr: respondGetQR['content']['iframe_url'],
+                );
+
+                if (!printSuccess) {
+                  emitFailure(
+                    failureResponse: jsonEncode({
+                      'type': 'print',
+                      'message':
+                          'Printing failed. Please try again. You can check to Duplicate Copy the latest compound.',
+                    }),
+                  );
+                  return;
+                }
+              } else {
+                await SharedPreferencesHelper.setQRLink(
+                  qrlink: 'Please try again later.',
+                );
+
+                emitFailure(
+                  failureResponse: jsonEncode({
+                    'type': 'qr',
+                    'message': respondGetQR['message'] ??
+                        'Failed to generate QR code. Please try again.',
+                  }),
+                );
+                return;
+              }
+            }
+          }
+        } else {
+          final respondRefreshTokenQR = await QrPaymentResources.refreshToken(
+              prefix: '/payment/public/refresh-token');
+
+          if (respondRefreshTokenQR['access_token'] == null) {
+            await SharedPreferencesHelper.setPegeypayToken(
+              token: respondRefreshTokenQR['access_token'],
+            );
+
+            final respondGetQR = await getQR(
+              token: respondRefreshTokenQR['access_token'],
+              compoundModel: compoundModel,
+            );
+
+            if (respondGetQR['status'] == 'success') {
+              // ✅ Proceed to print
+              await SharedPreferencesHelper.setQRLink(
+                qrlink: respondGetQR['content']['iframe_url'],
+              );
+
+              final printSuccess = await CompoundPrintService.connectAndPrint(
+                model: compoundModel,
+                rawMac: mac['printerMAC'],
+                handHeldId: handheldId,
+                userModel: userModel,
+                unitModel: unitModel,
+                offenceActModel: offenceActModel,
+                offenceAreaModel: offenceAreaModel,
+                offenceLocationModel: offenceLocationModel,
+                offenceSectionModel: offenceSectionModel,
+                vehicleColorModel: vehicleColorModel,
+                vehicleMakesModel: vehicleMakesModel,
+                vehicleModelsModel: vehicleModelsModel,
+                vehicleTypeModel: vehicleTypeModel,
+                qr: respondGetQR['content']['iframe_url'],
+              );
+
+              if (!printSuccess) {
+                emitFailure(
+                  failureResponse: jsonEncode({
+                    'type': 'print',
+                    'message':
+                        'Printing failed. Please try again. You can check to Duplicate Copy the latest compound.',
+                  }),
+                );
+                return;
+              }
+            } else {
+              await SharedPreferencesHelper.setQRLink(
+                qrlink: 'Please try again later.',
+              );
+              emitFailure(
+                failureResponse: jsonEncode({
+                  'type': 'qr',
+                  'message': respondGetQR['message'] ??
+                      'Failed to generate QR code. Please try again.',
+                }),
+              );
+              return;
+            }
+          } else {
+            await SharedPreferencesHelper.setQRLink(
+              qrlink: 'Please try again later.',
+            );
+
+            emitFailure(
+              failureResponse: jsonEncode({
+                'type': 'qr',
+                'message': respondRefreshTokenQR['message'] ??
+                    'Failed to generate QR code. Please try again.',
+              }),
+            );
+            return;
+          }
         }
 
         await SharedPreferencesHelper.saveIdsByNoticeNo(
@@ -593,5 +757,27 @@ class CompoundParkingFormBloc extends FormBloc<String, String> {
         }),
       );
     }
+  }
+
+  Future<Map<String, dynamic>> getQR(
+      {required String token,
+      required OfficerCompoundModel compoundModel}) async {
+    final response = await QrPaymentResources.generateQR(
+      token: token,
+      body: jsonEncode({
+        'order_output': "online",
+        'order_no': compoundModel.noticeNo,
+        'image_file_format': "png",
+        'override_existing_unprocessed_order_no': "NO",
+        'order_amount': compoundModel.compoundAmount!.toStringAsFixed(2),
+        'qr_validity': "99999",
+        'store_id': 'KNT', // description
+        'terminal_id': 'KUANTAN', // email
+        'shift_id': 'Enforcement', // city
+      }),
+    );
+
+    // Ensure response is properly typed as Map<String, dynamic>
+    return response;
   }
 }

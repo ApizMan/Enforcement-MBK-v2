@@ -28,6 +28,7 @@ class DuplicateCopyBodyScreen extends StatefulWidget {
   final bool isLoading;
   final List<OfficerCompoundModel> compoundList;
   final Map<String, dynamic> printerMAC;
+  final String? qrlink;
   const DuplicateCopyBodyScreen({
     super.key,
     required this.dataSets,
@@ -45,6 +46,7 @@ class DuplicateCopyBodyScreen extends StatefulWidget {
     required this.isLoading,
     required this.compoundList,
     required this.printerMAC,
+    required this.qrlink,
   });
 
   @override
@@ -232,6 +234,7 @@ class _DuplicateCopyBodyScreenState extends State<DuplicateCopyBodyScreen> {
                                               widget.vehicleModelsModel,
                                           vehicleTypeModel:
                                               widget.vehicleTypeModel,
+                                          qr: widget.qrlink ?? '',
                                         );
                                       },
                                       btnCancelText:

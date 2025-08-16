@@ -5,3 +5,4 @@ export 'upload_resources.dart';
 export 'shared/compound_resources.dart';
 export 'compound_resources.dart';
 export 'download_lookup_resources.dart';
+export 'qr_payment_resources.dart';

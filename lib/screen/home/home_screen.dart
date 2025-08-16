@@ -591,6 +591,35 @@ class _HomeScreenState extends State<HomeScreen> {
                             );
                             break;
 
+                          case 'qr':
+                            CustomDialog.show(
+                              context,
+                              dialogType: DialogType.danger,
+                              isDissmissable: false,
+                              icon: Icons.print,
+                              title: "Ralat Ambil QR Pegepay",
+                              description: message,
+                              btnOkText: "OK",
+                              btnOkOnPress: () =>
+                                  Navigator.pushNamedAndRemoveUntil(context,
+                                      RouteManager.homeScreen, (route) => false,
+                                      arguments: {
+                                    'userModel': userModel,
+                                    'unitModel': unitModel,
+                                    'handHeldId': handHeldId,
+                                    'vehicleTypeModel': vehicleTypeModel,
+                                    'vehicleMakesModel': vehicleMakesModel,
+                                    'vehicleModelsModel': vehicleModelsModel,
+                                    'vehicleColorModel': vehicleColorModel,
+                                    'offenceActModel': offenceActModel,
+                                    'offenceSectionModel': offenceSectionModel,
+                                    'offenceAreaModel': offenceAreaModel,
+                                    'offenceLocationModel':
+                                        offenceLocationModel,
+                                  }),
+                            );
+                            break;
+
                           case 'connectionPrinter':
                             CustomDialog.show(
                               context,

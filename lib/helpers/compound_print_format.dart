@@ -26,6 +26,7 @@ class CompoundPrintService {
     required List<OffenceAreaModel> offenceAreaModel,
     required List<OffenceLocationModel> offenceLocationModel,
     required OfficerCompoundModel model,
+    required String qr,
   }) async {
     try {
       String mac = formatMacAddress(rawMac);
@@ -48,6 +49,7 @@ class CompoundPrintService {
         vehicleMakesModel: vehicleMakesModel,
         vehicleModelsModel: vehicleModelsModel,
         vehicleTypeModel: vehicleTypeModel,
+        qr: qr,
       );
 
       print('🖨️ ZPL Generated:\n$zpl');
@@ -75,6 +77,7 @@ class CompoundPrintService {
     required List<OffenceAreaModel> offenceAreaModel,
     required List<OffenceLocationModel> offenceLocationModel,
     required OfficerCompoundModel model,
+    required String qr,
   }) async {
     try {
       String mac = formatMacAddress(rawMac);
@@ -97,6 +100,7 @@ class CompoundPrintService {
         vehicleMakesModel: vehicleMakesModel,
         vehicleModelsModel: vehicleModelsModel,
         vehicleTypeModel: vehicleTypeModel,
+        qr: qr,
       );
 
       print('🖨️ ZPL Generated:\n$zpl');

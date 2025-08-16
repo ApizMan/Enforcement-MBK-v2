@@ -467,4 +467,28 @@ class SharedPreferencesHelper {
     await prefs.setString(handheldDisplayIdKey, newId);
     return newId;
   }
+
+  static Future<void> setPegeypayToken({String? token}) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString(keyPegeypayToken, token!);
+  }
+
+  static Future<String?> getPegeyPayToken() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString(keyPegeypayToken);
+
+    return token;
+  }
+
+  static Future<void> setQRLink({String? qrlink}) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString(keyQRLink, qrlink!);
+  }
+
+  static Future<String?> getQRLink() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? qrlink = prefs.getString(keyQRLink);
+
+    return qrlink;
+  }
 }

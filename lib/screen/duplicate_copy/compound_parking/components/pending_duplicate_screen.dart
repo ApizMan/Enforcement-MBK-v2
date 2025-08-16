@@ -41,6 +41,7 @@ class PendingDuplicateScreen extends StatefulWidget {
   final bool isLoading;
   final CompoundResourcesSharedPreferences compoundHelper;
   final Map<String, dynamic> printerMAC;
+  final String? qrlink;
   const PendingDuplicateScreen({
     super.key,
     required this.dataSets,
@@ -58,6 +59,7 @@ class PendingDuplicateScreen extends StatefulWidget {
     required this.isLoading,
     required this.compoundHelper,
     required this.printerMAC,
+    required this.qrlink,
   });
 
   @override
@@ -710,6 +712,7 @@ class _PendingDuplicateScreenState extends State<PendingDuplicateScreen> {
                                       vehicleModelsModel:
                                           widget.vehicleModelsModel,
                                       vehicleTypeModel: widget.vehicleTypeModel,
+                                      qr: widget.qrlink ?? '',
                                     );
                                   },
                                   btnCancelText:

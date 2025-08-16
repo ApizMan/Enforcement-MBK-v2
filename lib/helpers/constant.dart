@@ -14,6 +14,7 @@ const String myEnfocementEnYasinUrl =
     'http://myenforce.citycarpark.my/HandheldApi_MBK/HandheldService.svc/JSONService/';
 
 const String backendUrl = 'http://220.158.208.216:3030';
+const String tokenUrl = 'http://220.158.208.216:3000';
 
 const String pahangGoUrl = 'https://v2.forcify.xyz/api/v1/external/';
 // const String pahangGoUrl = 'https://staging.forcify.xyz/api/v1/external/';
@@ -60,6 +61,8 @@ const String verifyDescKey = 'verifyDescKey';
 const String imageCountKey = 'imageCountKey';
 const String compoundIdKey = 'compoundIdKey';
 const String handheldDisplayIdKey = 'handheldDisplayIdKey';
+const String keyPegeypayToken = 'keyPegeypayToken';
+const String keyQRLink = 'keyQRLink';
 
 final divider = Divider(color: kWhite.withOpacity(0.3), height: 1);
 

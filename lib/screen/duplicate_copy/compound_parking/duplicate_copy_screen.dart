@@ -34,12 +34,21 @@ class _DuplicateCopyParkingScreenState
   List<OffenceAreaModel> offenceAreaModel = [];
   List<OffenceLocationModel> offenceLocationModel = [];
   Map<String, dynamic>? printerMAC;
+  String? qrlink;
 
   @override
   void initState() {
     super.initState();
     _getFromSharedPreference();
     _loadCompoundData();
+    _loadQRLink();
+  }
+
+  Future<void> _loadQRLink() async {
+    final _qrlink = await SharedPreferencesHelper.getQRLink();
+    setState(() {
+      qrlink = _qrlink;
+    });
   }
 
   Future<void> _loadCompoundData() async {
@@ -145,6 +154,7 @@ class _DuplicateCopyParkingScreenState
       isLoading: _isLoading,
       compoundList: _compoundHelper.compoundList,
       printerMAC: printerMAC!,
+      qrlink: qrlink,
     );
   }
 
@@ -166,6 +176,7 @@ class _DuplicateCopyParkingScreenState
       isLoading: _isLoading,
       compoundHelper: _compoundHelper,
       printerMAC: printerMAC!,
+      qrlink: qrlink,
     );
   }
 }
