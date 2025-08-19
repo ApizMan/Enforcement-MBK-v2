@@ -46,12 +46,23 @@ android {
     signingConfigs {
         create("release") {
             val storeFilePath = keystoreProperties["storeFile"] as? String
-            if (storeFilePath != null) {
-                storeFile = file(storeFilePath)
-                storePassword = keystoreProperties["storePassword"] as? String ?: ""
-                keyAlias = keystoreProperties["keyAlias"] as? String ?: ""
-                keyPassword = keystoreProperties["keyPassword"] as? String ?: ""
+                ?: error("Missing storeFile in key.properties")
+            val storeFileResolved = file(storeFilePath)
+            require(storeFileResolved.exists()) {
+                "Keystore file not found: $storeFileResolved"
             }
+
+            storeFile = storeFileResolved
+            storePassword = keystoreProperties["storePassword"] as? String
+                ?: error("Missing storePassword in key.properties")
+            keyAlias = keystoreProperties["keyAlias"] as? String
+                ?: error("Missing keyAlias in key.properties")
+            keyPassword = keystoreProperties["keyPassword"] as? String
+                ?: error("Missing keyPassword in key.properties")
+
+            // Explicit, even though release usually enables these by default
+            enableV1Signing = true
+            enableV2Signing = true
         }
     }
 
